@@ -3,11 +3,46 @@
 
 import wx
 from gui.MainFrame import MainFrame
+from tool.SubtitleLibOld import SubtitleFile
 
 class NoTagApp(wx.App):
   def OnInit(self):
     main = MainFrame()
     return True
+
+  def BringWindowToFront(self):
+    try:
+      self.GetTopWindow().Raise()
+    except:
+      pass
+        
+  def OnActivate(self, event):
+    if event.GetActive():
+      self.BringWindowToFront()
+    event.Skip()
+    
+  def OpenFileMessage(self, filename):
+    srt = SubtitleFile(filename)
+    srt.toAss()
+    srt.toTranscript()
+    srt.removeTag()
+
+  def MacOpenFile(self, filename):
+    """Called for files droped on dock icon, or opened via finders context menu"""
+    print filename
+    print "%s dropped on app" % (filename)
+    self.OpenFileMessage(filename)
+        
+  def MacReopenApp(self):
+    """Called when the doc icon is clicked, and ???"""
+    self.BringWindowToFront()
+
+  def MacNewFile(self):
+    pass
+    
+  def MacPrintFile(self, file_path):
+    pass
+    
   
 if __name__ == '__main__':
   import sys

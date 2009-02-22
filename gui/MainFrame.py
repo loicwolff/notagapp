@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import wx
-from gui.DropBox import DropBox
+from tool.SubtitleLibOld import SubtitleFile
 
 class MainFrame(wx.Frame):
   """This is the main frame of the application.
@@ -15,7 +15,7 @@ class MainFrame(wx.Frame):
     
   def __init__(self):
     wx.Frame.__init__(self, None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(400, 300), 
-                        wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION, u"MainFrame")
+                        wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION | wx.STAY_ON_TOP, u"MainFrame")
     
     wx.InitAllImageHandlers()
     self.initControls()
@@ -24,25 +24,40 @@ class MainFrame(wx.Frame):
     """create and initialize UI elements"""
     
     # Controls Initialization and showing of the form
-    self.mainpanel = wx.Panel(self, self.MAIN_FRAME_ID)
-    self.SetMinSize(wx.Size(320, 240))
+    mainpanel = wx.Panel(self, self.MAIN_FRAME_ID)
+    s_box = wx.StaticBox(mainpanel)
     
-    self.static_sizer = wx.StaticBoxSizer(wx.StaticBox(self.mainpanel), wx.VERTICAL)
+    drop_text = wx.StaticText(mainpanel, self.DROP_TEXT_ID, u"Drop file(s) here", 
+                                      wx.DefaultPosition, wx.DefaultSize, wx.CENTRE)    
+    drop_text.SetFont(wx.Font(20, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+    
+    static_sizer = wx.StaticBoxSizer(s_box, wx.VERTICAL)
+    static_sizer.Add(drop_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
+    
+    mainpanel.SetSizer(static_sizer)
+    
+    target1 = DropFile()
+    s_box.SetDropTarget(target1)
+    target2 = DropFile()
+    drop_text.SetDropTarget(target2)
 
-    self.v_sizer = wx.BoxSizer(wx.VERTICAL)
+    self.SetMinSize(wx.Size(320, 100))
+    self.SetMaxSize(wx.Size(320, 100))
 
-    self.drop_text = wx.StaticText(self.mainpanel, self.DROP_TEXT_ID, u"Drop file(s) here", 
-                                       wx.DefaultPosition, wx.DefaultSize, wx.CENTRE)
-    self.dropbox = DropBox(self.mainpanel, self.DROPBOX_ID)
-    
-    self.drop_text.SetFont(wx.Font(20, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
-    
-    self.v_sizer.Add(self.drop_text, 0, wx.ALIGN_CENTRE, 20)
-    self.v_sizer.Add(self.dropbox, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    
-    self.static_sizer.Add(self.v_sizer, 0, wx.EXPAND, 20)
-    
-    self.mainpanel.SetSizer(self.static_sizer)
-    
     self.Center()
     self.Show(True)
+
+
+class DropFile(wx.FileDropTarget):
+  """"""
+    
+  def __init__(self):
+    wx.FileDropTarget.__init__(self)
+        
+  def OnDropFiles(self, x, y, files):
+    srt = SubtitleFile()
+    for file in files:
+      srt.File = file
+      srt.toAss()
+      srt.toTranscript()
+      srt.removeTag()

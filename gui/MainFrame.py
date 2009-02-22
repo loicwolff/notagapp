@@ -27,7 +27,7 @@ class MainFrame(wx.Frame):
   
   def __init__(self):
     wx.Frame.__init__(self, None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(400, 300), 
-                        wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION | wx.STAY_ON_TOP)
+                        wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION | wx.STAY_ON_TOP | wx.SYSTEM_MENU)
     
     wx.InitAllImageHandlers()
     self.initControls()

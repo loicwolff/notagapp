@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import wx
-import sys
-if sys.version_info[0:2] == (2, 6) or sys.version_info[0] == 3:
-  print("importing py3k-ready version")
-  from tool.SubtitleLib import SubtitleFile
-else:
-  print "import py2.5 legacy version"
-  from tool.SubtitleLibOld import SubtitleFile
+from tool.SubtitleLibOld import SubtitleFile
+#import sys
+#if sys.version_info[0:2] == (2, 6) or sys.version_info[0] == 3:
+#  print("importing py3k-ready version")
+#  from tool.SubtitleLib import SubtitleFile
+#else:
+#  print "import py2.5 legacy version"
+#  from tool.SubtitleLibOld import SubtitleFile
 
 class MainFrame(wx.Frame):
   """This is the main frame of the application.
@@ -23,7 +24,7 @@ class MainFrame(wx.Frame):
   _to_ass_checkbox = None
   _remove_tag_checkbox = None
   _to_transcript_checkbox = None
-    
+  
   def __init__(self):
     wx.Frame.__init__(self, None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(400, 300), 
                         wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION | wx.STAY_ON_TOP)

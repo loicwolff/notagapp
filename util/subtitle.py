@@ -186,7 +186,7 @@ class Subtitle(object):
           self._end_time, 
           self._first_line, 
           "" if self._second_line == "" else "\r\n%s" % (self._second_line))
-    else: #if self._type == SubtitleType.ASS:
+    else:
       return "Dialogue: 0,%s:%s:%s.%s,%s:%s:%s.%s,Default,,0000,0000,0000,,%s%s" % (
           self._start_time, 
           self._end_time, 
@@ -241,7 +241,6 @@ class Subtitle(object):
   Lines = property(_getLines)
   FirstLine = property(_getFirstLine, _setFirstLine)
   SecondLine = property(_getSecondLine, _setSecondLine)
-  #TimingLine = property(_getTimingLine, _setTimingLine)
 
 class Timing(object):
   _millis = 0
@@ -331,8 +330,9 @@ if __name__ == "__main__":
   s.File = "/Users/dex/Desktop/lost.srt"
  
   s.toAss(True)
-  s.toTranscript() 
+  #s.toTranscript() 
   s.toSRT(True)
+  s.toSRT(False)
   
   #for sub in s.Subs:
     #print("\n" + str(sub))

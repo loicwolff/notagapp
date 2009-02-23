@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
 import re
 
 class SubtitleFile(object):
@@ -18,7 +17,7 @@ class SubtitleFile(object):
       
   def toAss(self):
     """"""
-    output_file = open("%s.TAG.ass" % (self._sub_name), "w")
+    output_file = open("{file}.TAG.ass".format(file=self._sub_name), "w")
     
     output_file.write("[Script Info]\r\n")
     output_file.write("Title: <untitled>\r\n")
@@ -46,17 +45,17 @@ class SubtitleFile(object):
       [re.sub(key, value, sub.FirstLine) for key, value in ass_pattern.items()]
       [re.sub(key, value, sub.SecondLine) for key, value in ass_pattern.items()]
     
-      output_file.write("Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s\r\n" % (
-                          sub.StartTime.toAss(),
-                          sub.EndTime.toAss(),
-                          sub.FirstLine,
-                          "" if sub.SecondLine == "" else "\N%s" % (sub.SecondLine)))
+      output_file.write("Dialogue: 0,{start_time},{end_time},Default,,0000,0000,0000,,{first_line}{second_line}\r\n".format(
+                          start_time=sub.StartTime.toAss(),
+                          end_time=sub.EndTime.toAss(),
+                          first_line=sub.FirstLine,
+                          second_line="" if sub.SecondLine == "" else "\N{0}".format(sub.SecondLine)))
                 
     output_file.close()
     
   def toTranscript(self):
     """"""
-    output_file = open("%s.TRANSCRIPT.txt" % (self._sub_name), 'w')
+    output_file = open(u"{file}.TRANSCRIPT.txt".format(file=self._sub_name), 'w')
     
     pattern = "({.*?})|(<.*?>)"
     number_pattern = "^\d+\r\n$"
@@ -75,7 +74,7 @@ class SubtitleFile(object):
     
   def removeTag(self):
     """"""
-    output_file = open(u"%s.NOTAG.srt" % (self._sub_name), "w")
+    output_file = open(u"{file}.NOTAG.srt".format(file=self._sub_name), "w")
     sub_pattern = u"({.*?})|(</?font.*?>)|(</?u>)|(</?b>)"
 
     noTagPattern = { "œ":"oe", "Œ":"Oe", "Æ":"Ae", "æ":"ae" }
@@ -153,11 +152,11 @@ class Subtitle(object):
     self._end_time = Timing()
   
   def __str__(self):
-    return "%s --> %s\r\n%s%s" % (
-        self._start_time, 
-        self._end_time, 
-        self._first_line, 
-        "" if self._second_line == "" else "\r\n%s" % (self._second_line))
+    return "{start} --> {end}\r\n{first_line}{second_line}".format(
+        start=self._start_time, 
+        end=self._end_time, 
+        first_line=self._first_line, 
+        second_line="" if self._second_line == "" else "\r\n{0}".format(self._second_line))
   
   # getters
   def _getIndex(self):
@@ -176,10 +175,12 @@ class Subtitle(object):
     return self._second_line
       
   def _getTimingLine(self):
-    return "%s --> %s" % (self._start_time, self._end_time)
+    return "{first} --> {second}".format(
+        first=self._start_time, 
+        second=self._end_time)
           
   def _getLines(self):
-    return "%s\r\n%s" % (self._first_line, self._second_line)
+    return "{first}\r\n{second}".format(self._first_line, self._second_line)
           
   # setters
   def _setIndex(self, index):
@@ -228,14 +229,14 @@ class Timing(object):
     self._hour = hour
       
   def toAss(self):
-    return "%s:%s:%s.%s" % (
-          str(int(self._hour)),
+    return "{0}:{1}:{2}.{3}".format(
+          int(self._hour),
           self._min, 
           self._sec, 
           self._millis[0:2])
       
   def __str__(self):
-    return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
+    return "{0}:{1}:{2},{3}".format(self._hour, self._min, self._sec, self._millis)
       
   # getters
   def _getMillis(self):
@@ -276,11 +277,11 @@ class Timing(object):
 
 if __name__ == "__main__":
   s = SubtitleFile()
-  s.File = "/Users/dex/Desktop/himym.srt"
+  s.File = "/Users/dex/Desktop/scrubs.srt"
     
-  #s.toAss()
+  s.toAss()
   s.toTranscript()
-  #s.removeTag()
+  s.removeTag()
   
   #for sub in s.Subs:
     #print("\n" + str(sub))

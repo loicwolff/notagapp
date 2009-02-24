@@ -3,7 +3,7 @@
 
 import wx
 from gui.MainFrame import MainFrame
-from tool.SubtitleLibOld import SubtitleFile
+from util.subtitle import SubtitleFile
 
 class NoTagApp(wx.App):
   def OnInit(self):

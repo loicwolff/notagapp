@@ -35,14 +35,9 @@ def parseAss(timing):
   """return a tuple of the start and end (hour, minute, sec and millis) 
   of the timing matched from an ASS line
   """
-  return re.match("^Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),"+
-                  "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*$", timing).groups()
-  
-  #return m.groups()
-  #(Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
-  #Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
-
-
+  return re.match("Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
+                  "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
+                  
 # filetype constants
 SRT_FILE = 1
 ASS_FILE = 2
@@ -289,17 +284,24 @@ class Timing(object):
   
   @staticmethod
   def parseSRT(timing):
-    m = re.match("(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing)
-    return (Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
-            Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
+    timings = parseAss(timing)
+    return Timing(timings[0:3]), Timing(timings[4:7])
+    
+    #m = re.match("(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing)
+    #return (Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
+    #        Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
             
   @staticmethod
   def parseAss(timing):
-    m = re.match("^Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*$", 
-                  timing)
+    timings = parseAss(timing)
+    return Timing(timings[0:3]), Timing(timings[4:7])
     
-    return (Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
-            Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
+    #m = re.match("^Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," + 
+    #             "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*$", 
+    #              timing)
+    
+    #return (Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
+    #        Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
       
   def __init__(self, hour = 0, min = 0, sec = 0, millis = 0, type = SRT_FILE):
     self._millis = int(millis)
@@ -369,11 +371,11 @@ class Timing(object):
 if __name__ == "__main__":
   s = SubtitleFile()
   s.File = "/Users/dex/Desktop/scrubs.ass"
- 
-  #s.toAss(True)
-  #s.toTranscript() 
-  #s.toSRT(True)
-  #s.toSRT(False)
+  
+  s.toAss(True)
+  s.toTranscript() 
+  s.toSRT(True)
+  s.toSRT(False)
   
   #for sub in s.Subs:
     #print("\n" + str(sub))

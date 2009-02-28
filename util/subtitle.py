@@ -167,7 +167,7 @@ class SubtitleFile(object):
           "" if sub.SecondLine == "" else "\r\n%s" % (sub.SecondLine if keep_tag else removeTag(sub.SecondLine, True)))) 
 
 
-  def stats():
+  def stats(self):
     """return a tuple with:
     > the number of subs
     > the number of lines
@@ -175,9 +175,9 @@ class SubtitleFile(object):
     
     num_line = 0
     for sub in self._subs:
-      num += 1
+      num_line += 1
       if sub.SecondLine != "":
-        num += 1
+        num_line += 1
     
     return len(self._subs), num_line
 
@@ -387,4 +387,3 @@ if __name__ == "__main__":
   
   #for sub in s.Subs:
     #print("\n" + str(sub))
-        

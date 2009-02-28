@@ -125,4 +125,4 @@ class DropFile(wx.FileDropTarget):
           srt.toSRT(True)
           srt.toSRT(False)
           
-      print("%s subtitle(s) and % line(s) processed" % (srt.stats()))
+      print("%s subtitle(s) and %s line(s) processed" % (srt.stats()))

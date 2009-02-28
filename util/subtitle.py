@@ -166,6 +166,21 @@ class SubtitleFile(object):
           sub.FirstLine if keep_tag else removeTag(sub.FirstLine, True),
           "" if sub.SecondLine == "" else "\r\n%s" % (sub.SecondLine if keep_tag else removeTag(sub.SecondLine, True)))) 
 
+
+  def stats():
+    """return a tuple with:
+    > the number of subs
+    > the number of lines
+    """
+    
+    num_line = 0
+    for sub in self._subs:
+      num++
+      if sub.SecondLine != "":
+        num++
+    
+    return len(self._subs), num_line
+
   def _isSubtitle(self, file):
     if file[-4:] == u".srt":
       self._type = SRT_FILE

@@ -33,7 +33,6 @@ class SubtitleFile(object):
   _subs = []
   _file = ""
   _sub_name = ""
-  _sub_name_pattern = r"(.*)\.srt"
   _type = None
 
   def __init__(self, file=None):
@@ -42,7 +41,7 @@ class SubtitleFile(object):
     
   def _parseSRT(self):
     """"""
-        
+    
     with open(self._file, "r") as sub:
       sub_entry = None
       is_first_line = True
@@ -77,7 +76,26 @@ class SubtitleFile(object):
             sub_entry = None
 
   def _parseAss(self):
-    pass
+    """"""
+    ass_line_pattern = re.compile("^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2}),(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
+    #ass_text_pattern = re.compile("(.*)[\N(.*)]?")
+    with open(self._file, "r") as sub:
+      for line in sub:
+        sub_entry = Subtitle(self._type)
+        line = line.strip("\r\n")
+        if re.search(ass_line_pattern, line):
+          m = re.search(ass_line_pattern, line)
+          start_hour, start_min, start_sec, start_millis, end_hour, end_min, end_sec, end_millis, text = m.groups()
+          sub_entry.StartHour = Timing(start_hour, start_min, start_sec, start_millis)
+          sub_entry.EndHour = Timing(end_hour, end_min, end_sec, end_millis)
+          
+          if (text.find("\N")) != -1:
+            sub_entry.FirstLine, sub_entry.SecondLine = text.split("\N")
+          else:
+            sub_entry.FirstLine = text
+          
+          self._subs.append(sub_entry)
+          print(sub_entry)
 
   def toAss(self, keep_tag):
     """"""
@@ -153,12 +171,13 @@ class SubtitleFile(object):
       raise ValueError(u"Unable to open file or not a subtitle")
     else:
       self._file = file
-      self._sub_name = re.match(re.compile(self._sub_name_pattern), file).group(1)
       self._subs = []
       if self._type == SRT_FILE:
+        self._sub_name = re.match(re.compile(r"(.*).srt"), file).group(1)
         self._parseSRT()
-      else:
-        pass
+      else: # if ASS_FILE:
+        self._sub_name = re.match(re.compile(r"(.*).ass"), file).group(1)
+        self._parseAss()
     
 
   # properties
@@ -182,14 +201,15 @@ class Subtitle(object):
   def __str__(self):
     if self._type == SRT_FILE:
       return "%s --> %s\r\n%s%s" % (
-          self._start_time, 
-          self._end_time, 
+          self._start_time.toSRT(), 
+          self._end_time.toSRT(), 
           self._first_line, 
           "" if self._second_line == "" else "\r\n%s" % (self._second_line))
     else:
-      return "Dialogue: 0,%s:%s:%s.%s,%s:%s:%s.%s,Default,,0000,0000,0000,,%s%s" % (
-          self._start_time, 
-          self._end_time, 
+      # "Dialogue: 0,%s:%s:%s.%s,%s:%s:%s.%s,Default,,0000,0000,0000,,%s%s"
+      return "Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s" % (
+          self._start_time.toAss(), 
+          self._end_time.toAss(), 
           self._first_line, 
           "" if self._second_line == "" else "\N%s" % (self._second_line))
   
@@ -288,6 +308,9 @@ class Timing(object):
     if self._type == SRT_FILE:
       return "hour: %d\nmin: %d\nsec: %d\nmillis: %d" % (self._hour, self._min, self._sec, self._millis)
 
+  def values(self):
+    return self._hour, self._min, self._sec, self._millis
+
   # getters
   def _getMillis(self):
     return self._millis
@@ -327,12 +350,12 @@ class Timing(object):
 
 if __name__ == "__main__":
   s = SubtitleFile()
-  s.File = "/Users/dex/Desktop/lost.srt"
+  s.File = "/Users/dex/Desktop/scrubs.ass"
  
-  s.toAss(True)
+  #s.toAss(True)
   #s.toTranscript() 
-  s.toSRT(True)
-  s.toSRT(False)
+  #s.toSRT(True)
+  #s.toSRT(False)
   
   #for sub in s.Subs:
     #print("\n" + str(sub))

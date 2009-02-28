@@ -15,7 +15,7 @@ def removeTag(entry, keep_italics):
   """remove SRT and ASS tags
   if <code>keep_italics>, italics tags are not removed
   """
-  tag_pattern = "{.*?}|</?font.*?>|</?u>|</?b>" if keep_italics else "{.*?}|</?font.*?>|</?u>|</?b>|</?i>"
+  tag_pattern = "{.*?}|</?font.*?>|</?u>|</?b>%s" % ("|</?i>" if keep_italics else "")
   return re.sub(tag_pattern, "", entry)
   
 def toAssPattern(entry):
@@ -24,6 +24,24 @@ def toAssPattern(entry):
   for key, value in to_ass_pattern.items():
     entry = re.sub(key, value, entry) 
   return entry
+
+def parseSRT(timing):
+  """return a tuple of the start and end (hour, minute, sec and millis)
+  of the timing matched from a SRT line
+  """
+  return re.match("(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
+
+def parseAss(timing):
+  """return a tuple of the start and end (hour, minute, sec and millis) 
+  of the timing matched from an ASS line
+  """
+  return re.match("^Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),"+
+                  "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*$", timing).groups()
+  
+  #return m.groups()
+  #(Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
+  #Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
+
 
 # filetype constants
 SRT_FILE = 1
@@ -77,7 +95,8 @@ class SubtitleFile(object):
 
   def _parseAss(self):
     """"""
-    ass_line_pattern = re.compile("^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2}),(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
+    ass_line_pattern = re.compile(
+      "^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2}),(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
     #ass_text_pattern = re.compile("(.*)[\N(.*)]?")
     with open(self._file, "r") as sub:
       for line in sub:
@@ -95,7 +114,6 @@ class SubtitleFile(object):
             sub_entry.FirstLine = text
           
           self._subs.append(sub_entry)
-          print(sub_entry)
 
   def toAss(self, keep_tag):
     """"""

@@ -25,13 +25,13 @@ def toAssPattern(entry):
     entry = re.sub(key, value, entry) 
   return entry
 
-def parseSRT(timing):
+def parseSRTTiming(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
   of the timing matched from a SRT line
   """
   return re.match("(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
 
-def parseAss(timing):
+def parseAssTiming(timing):
   """return a tuple of the start and end (hour, minute, sec and millis) 
   of the timing matched from an ASS line
   """
@@ -90,8 +90,8 @@ class SubtitleFile(object):
 
   def _parseAss(self):
     """"""
-    ass_line_pattern = re.compile(
-      "^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2}),(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
+    ass_line_pattern = re.compile("^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," + 
+                                  "(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
     #ass_text_pattern = re.compile("(.*)[\N(.*)]?")
     with open(self._file, "r") as sub:
       for line in sub:
@@ -152,7 +152,11 @@ class SubtitleFile(object):
                           "" if sub.SecondLine == "" else "\r\n%s" % (removeTag(sub.SecondLine, False))))
   
   def toSRT(self, keep_tag):
-    """"""
+    """generate an SRT file
+    if <code>keep_tag</code> is at False, the position tags, 
+    except the italics, are removed
+    """
+    
     with open("%s.%s.srt" % (self._sub_name, "TAG" if keep_tag else "NOTAG"), "w") as output_file:
       for sub in self._subs:
         output_file.write("%d\r\n%s --> %s\r\n%s%s\r\n\r\n" % (
@@ -284,24 +288,13 @@ class Timing(object):
   
   @staticmethod
   def parseSRT(timing):
-    timings = parseAss(timing)
+    timings = parseSRTTiming(timing)
     return Timing(timings[0:3]), Timing(timings[4:7])
-    
-    #m = re.match("(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing)
-    #return (Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
-    #        Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
             
   @staticmethod
   def parseAss(timing):
-    timings = parseAss(timing)
+    timings = parseAssTiming(timing)
     return Timing(timings[0:3]), Timing(timings[4:7])
-    
-    #m = re.match("^Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," + 
-    #             "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*$", 
-    #              timing)
-    
-    #return (Timing(m.group(1), m.group(2), m.group(3), m.group(4)), 
-    #        Timing(m.group(5), m.group(6), m.group(7), m.group(8)))
       
   def __init__(self, hour = 0, min = 0, sec = 0, millis = 0, type = SRT_FILE):
     self._millis = int(millis)

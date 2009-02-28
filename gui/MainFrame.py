@@ -3,13 +3,6 @@
 
 import wx
 from util.subtitle import SubtitleFile
-#import sys
-#if sys.version_info[0:2] == (2, 6) or sys.version_info[0] == 3:
-#  print("importing py3k-ready version")
-#  from tool.SubtitleLib import SubtitleFile
-#else:
-#  print "import py2.5 legacy version"
-#  from tool.SubtitleLibOld import SubtitleFile
 
 class MainFrame(wx.Frame):
   """This is the main frame of the application.

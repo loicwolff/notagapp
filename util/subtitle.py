@@ -175,9 +175,9 @@ class SubtitleFile(object):
     
     num_line = 0
     for sub in self._subs:
-      num++
+      num += 1
       if sub.SecondLine != "":
-        num++
+        num += 1
     
     return len(self._subs), num_line
 

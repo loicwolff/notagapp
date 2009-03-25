@@ -18,14 +18,33 @@ def removeTag(entry, keep_italics):
   tag_pattern = "{.*?}|</?font.*?>|</?u>|</?b>%s" % ("|</?i>" if keep_italics else "")
   return re.sub(tag_pattern, "", entry)
   
+def toSrtPattern(entry):
+  """change the ASS tags into SRT tags"""
+  to_srt_pattern = { r"{\i1}":r"<i>", 
+                     r"{\i0}":r"</i>", 
+                     r"{\u1}":r"<u>", 
+                     r"{\u0}":r"</u>", 
+                     r"{\b1}":r"<b>", 
+                     r"{\b0}":r"</b>" }
+  
+  for key, value in to_srt_pattern.items():
+    entry = entry.replace(key, value) 
+  return entry
+  
 def toAssPattern(entry):
   """change the SRT tags into ASS tags"""
-  to_ass_pattern = { "<i>":"{\i1}", "</i>":"{\i0}", "<u>":"{\u1}", "</u>":"{\u0}", "<b>":"{\b1}", "</b>":"{\b0}" }
+  to_ass_pattern = { r"<i>":r"{\i1}", 
+                     r"</i>":r"{\i0}", 
+                     r"<u>":r"{\u1}", 
+                     r"</u>":r"{\u0}", 
+                     r"<b>":r"{\b1}", 
+                     r"</b>":r"{\b0}" }
+  
   for key, value in to_ass_pattern.items():
-    entry = re.sub(key, value, entry) 
+    entry = entry.replace(key, value)
   return entry
 
-def parseSRTTiming(timing):
+def parseSrtTiming(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
   of the timing matched from a SRT line
   """
@@ -38,9 +57,16 @@ def parseAssTiming(timing):
   return re.match("Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
                   "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
                   
+
+def parseWeirdTiming(timing):
+  """
+  """
+  return re.match("^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: (.*):(.*):(.*):(.*)$", timing).groups()
+                  
 # filetype constants
 SRT_FILE = 1
 ASS_FILE = 2
+WEIRD_FILE = 3
 
 class SubtitleFile(object):
   _subs = []
@@ -52,7 +78,7 @@ class SubtitleFile(object):
     if file is not None:
       self._setFile(file)
     
-  def _parseSRT(self):
+  def _parseSrt(self):
     """"""
     
     with open(self._file, "r") as sub:
@@ -68,7 +94,7 @@ class SubtitleFile(object):
         # match timing line
         elif re.match("\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", line):
           if sub_entry is not None:
-            sub_entry.StartTime, sub_entry.EndTime = Timing.parseSRT(line)
+            sub_entry.StartTime, sub_entry.EndTime = Timing.parseSrt(line)
         # match text line
         elif line != "":
           if is_first_line:
@@ -109,6 +135,42 @@ class SubtitleFile(object):
             sub_entry.FirstLine = text
           
           self._subs.append(sub_entry)
+          
+          
+  def _parseWeird(self):
+    """"""
+    with open(self._file, "r") as sub:
+      sub_entry = None
+      is_first_line = True
+      index = 0
+
+      for line in sub:
+        line = line.strip("\r\n")
+        
+        # match timing line
+        if re.match("^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: (.*):(.*):(.*):(.*)$", line):
+          index += 1
+          sub_entry = Subtitle()
+          sub_entry.Index = index
+          sub_entry.StartTime, sub_entry.EndTime = Timing.parseWeird(line)
+        # match text line
+        elif line != "":
+          if is_first_line:
+            if sub_entry is not None:
+              sub_entry.FirstLine = removeExoticChar(line)
+              is_first_line = False
+          else:
+            if sub_entry is not None:
+              sub_entry.SecondLine = removeExoticChar(line)
+              is_first_line = True
+              self._subs.append(sub_entry)
+              sub_entry = None
+        # match empty line
+        else:
+          if sub_entry is not None:
+            is_first_line = True
+            self._subs.append(sub_entry)
+            sub_entry = None
 
   def toAss(self, keep_tag):
     """"""
@@ -151,20 +213,20 @@ class SubtitleFile(object):
                           removeTag(sub.FirstLine, False), 
                           "" if sub.SecondLine == "" else "\r\n%s" % (removeTag(sub.SecondLine, False))))
   
-  def toSRT(self, keep_tag):
+  def toSrt(self, keep_tag):
     """generate an SRT file
     if <code>keep_tag</code> is at False, the position tags, 
     except the italics, are removed
     """
     
     with open("%s.%s.srt" % (self._sub_name, "TAG" if keep_tag else "NOTAG"), "w") as output_file:
-      for sub in self._subs:
+      for sub in self._subs: 
         output_file.write("%d\r\n%s --> %s\r\n%s%s\r\n\r\n" % (
           sub.Index,
-          sub.StartTime.toSRT(),
-          sub.EndTime.toSRT(),
-          sub.FirstLine if keep_tag else removeTag(sub.FirstLine, True),
-          "" if sub.SecondLine == "" else "\r\n%s" % (sub.SecondLine if keep_tag else removeTag(sub.SecondLine, True)))) 
+          sub.StartTime.toSrt(),
+          sub.EndTime.toSrt(),
+          toSrtPattern(sub.FirstLine) if keep_tag else removeTag(sub.FirstLine, True),
+          "" if sub.SecondLine == "" else "\r\n%s" % (toSrtPattern(sub.SecondLine) if keep_tag else removeTag(sub.SecondLine, True)))) 
 
 
   def stats(self):
@@ -186,7 +248,9 @@ class SubtitleFile(object):
       self._type = SRT_FILE
     elif file[-4:] == u".ass":
       self._type = ASS_FILE
-    else:
+    elif file[-4:] == ".txt":
+      self._type = WEIRD_FILE
+    else:  
       return False
     return True
       
@@ -206,11 +270,13 @@ class SubtitleFile(object):
       self._subs = []
       if self._type == SRT_FILE:
         self._sub_name = re.match(re.compile(r"(.*).srt"), file).group(1)
-        self._parseSRT()
-      else: # if ASS_FILE:
+        self._parseSrt()
+      elif self._type == ASS_FILE:
         self._sub_name = re.match(re.compile(r"(.*).ass"), file).group(1)
         self._parseAss()
-    
+      elif self._type == WEIRD_FILE:
+        self._sub_name = re.match(re.compile(r"(.*).txt"), file).group(1)
+        self._parseWeird()
 
   # properties
   File = property(_getFile, _setFile)
@@ -233,8 +299,8 @@ class Subtitle(object):
   def __str__(self):
     if self._type == SRT_FILE:
       return "%s --> %s\r\n%s%s" % (
-          self._start_time.toSRT(), 
-          self._end_time.toSRT(), 
+          self._start_time.toSrt(), 
+          self._end_time.toSrt(), 
           self._first_line, 
           "" if self._second_line == "" else "\r\n%s" % (self._second_line))
     else:
@@ -302,15 +368,36 @@ class Timing(object):
   _type = SRT_FILE
   
   @staticmethod
-  def parseSRT(timing):
-    timings = parseSRTTiming(timing)
+  def parseSrt(timing):
+    timings = parseSrtTiming(timing)
     return Timing(timings[0:3]), Timing(timings[4:7])
             
   @staticmethod
   def parseAss(timing):
     timings = parseAssTiming(timing)
     return Timing(timings[0:3]), Timing(timings[4:7])
-      
+    
+  @staticmethod
+  def parseWeird(timing):
+    timings = parseWeirdTiming(timing)
+    print timings
+    
+    start_time = end_time = Timing(timings[0], timings[1], timings[2], timings[3])
+    print(timings[4:6])
+    millis, sec = timings[4:6]
+    end_time.Millis += int(millis)
+    if end_time.Millis >= 100:
+      end_time.Sec += 1
+    
+    end_time.Sec += int(sec)
+    if end_time.Sec >= 60:
+      end_time.Min += 1
+    
+    if end_time.Min >= 60:
+      end_time.Hour += 1
+    
+    return start_time, end_time
+  
   def __init__(self, hour = 0, min = 0, sec = 0, millis = 0, type = SRT_FILE):
     self._millis = int(millis)
     self._sec = int(sec)
@@ -325,7 +412,7 @@ class Timing(object):
           self._sec, 
           int(str(self._millis)[0:2]))
   
-  def toSRT(self):
+  def toSrt(self):
     return "%.2d:%.2d:%.2d,%.3d" % (
           self._hour,
           self._min, 
@@ -377,13 +464,17 @@ class Timing(object):
   Time = property(_getTime)
 
 if __name__ == "__main__":
-  s = SubtitleFile()
-  s.File = "/Users/dex/Desktop/scrubs.ass"
+  s = "TIMEIN: 01:00:31:07	DURATION: 02:10	TIMEOUT: --:--:--:--"
   
-  s.toAss(True)
-  s.toTranscript() 
-  s.toSRT(True)
-  s.toSRT(False)
+  print(Timing.parseWeird(s))
+  
+  s = SubtitleFile()
+  s.File = "/Users/dex/Downloads/essai.txt"
+
+  #s.toAss(True)
+  #s.toTranscript() 
+  s.toSrt(True)
+  #s.toSrt(keep_tag=False)
   
   #for sub in s.Subs:
     #print("\n" + str(sub))

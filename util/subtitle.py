@@ -24,7 +24,7 @@ def removeTag(entry):
   """remove SRT and ASS tags
   if keep_italics, italics tags are not removed
   """
-  tag_pattern = "{.*?}|</?font.*?>|</?.*?>"
+  tag_pattern = r"{.*?}|</?font.*?>|</?.*?>"
   return re.sub(tag_pattern, "", entry)
   
 def toSrtPattern(entry):
@@ -59,19 +59,19 @@ def parseSrtTiming(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
   of the timing matched from a SRT line
   """
-  return re.match("(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
+  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
 
 def parseAssTiming(timing):
   """return a tuple of the start and end (hour, minute, sec and millis) 
   of the timing matched from an ASS line
   """
-  return re.match("Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
-                  "(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
+  return re.match(r"Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
+                  r"(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
                   
 
 def parseWeirdTiming(timing):
   """return a tuple of the start time, the length of the subtitle"""
-  return re.match("^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: .*:.*:.*:.*$", timing).groups()
+  return re.match(r"^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: .*:.*:.*:.*$", timing).groups()
 
 def toNoTagAppPattern(entry):
   notagapp_pattern = { r"<i>":ITA_OPEN,
@@ -103,11 +103,11 @@ class SubtitleFile(object):
       for line in sub:
         line = line.strip("\r\n")
         # match index line
-        if re.match("^\d+$", line):
+        if re.match(r"^\d+$", line):
           sub_entry = Subtitle()
           sub_entry.Index = int(line)
         # match timing line
-        elif re.match("\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", line):
+        elif re.match(r"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", line):
           if sub_entry is not None:
             sub_entry.StartTime, sub_entry.EndTime = Timing.parseSrt(line)
         # match text line
@@ -115,7 +115,6 @@ class SubtitleFile(object):
           #print(line)
           if re.search(r"\{\\pos\(\d{1,4},\d{1,4}\)\}", line):
             sub_entry.Position = re.match(r"\{\\pos\((\d{1,4}),(\d{1,4})\)\}", line).groups()
-            #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")# + sub_entry.Position)
           
           #cleaning up the processed line
           line = toNoTagAppPattern(line)
@@ -140,8 +139,8 @@ class SubtitleFile(object):
 
   def _parseAss(self):
     """"""
-    ass_line_pattern = re.compile("^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," + 
-                                  "(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
+    ass_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," + 
+                                  r"(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
     with open(self._file, "r") as sub:
       index = 0
       for line in sub:
@@ -152,6 +151,14 @@ class SubtitleFile(object):
         if re.search(ass_line_pattern, line):
           m = re.search(ass_line_pattern, line)
           start_hour, start_min, start_sec, start_millis, end_hour, end_min, end_sec, end_millis, text = m.groups()
+          
+          if re.search(r"\{\\pos\(\d{1,4},\d{1,4}\)\}", text):
+            sub_entry.Position = re.search(r"\{\\pos\((\d{1,4}),(\d{1,4})\)\}", text).groups()
+          
+          text = removeTag(text)
+          text = toNoTagAppPattern(text)
+          text = removeExoticChar(text)
+          
           sub_entry.StartTime = Timing(start_hour, start_min, start_sec, start_millis)
           sub_entry.EndTime = Timing(end_hour, end_min, end_sec, end_millis)
 
@@ -245,7 +252,7 @@ class SubtitleFile(object):
     
     with open("%s.%s.srt" % (self._sub_name, "TAG" if keep_tag else "NOTAG"), "w") as output_file:
       for sub in self._subs: 
-        output_file.write("%d\r\n%s --> %s\r\n%s%s\r\n\r\n" % (
+        output_file.write(r"%d\r\n%s --> %s\r\n%s%s\r\n\r\n" % (
           sub.Index,
           sub.StartTime.toSrt(),
           sub.EndTime.toSrt(),
@@ -313,29 +320,20 @@ class Subtitle(object):
   _lines = ""
   _first_line = ""
   _second_line = ""
-  _type = None
   _pos = None
   
   def __init__(self, type = SRT_FILE):
     self._start_time = Timing()
     self._end_time = Timing()
-    self._type = type
   
   def __str__(self):
-    if self._type == SRT_FILE:
-      return "%s --> %s\r\n%s%s%s" % (
-          self._start_time.toSrt(), 
-          self._end_time.toSrt(), 
-          "" if self._pos is None else "{\\pos(%s,%s)}" % (self._pos),
-          self._first_line, 
-          "" if self._second_line == "" else "\r\n%s" % (self._second_line))
-    elif self._type == ASS_FILE:
-      # "Dialogue: 0,%s:%s:%s.%s,%s:%s:%s.%s,Default,,0000,0000,0000,,%s%s"
-      return "Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s" % (
-          self._start_time.toAss(), 
-          self._end_time.toAss(), 
-          self._first_line, 
-          "" if self._second_line == "" else "\N%s" % (self._second_line))
+    return "from %s to %s%s\nline 1: %s%s" % (
+                self._start_time,
+                self._end_time,
+                "" if self._pos is None else "\npos: %s,%s" % (self._pos),
+                self._first_line,
+                "" if self._second_line == "" else "\nline 2: %s" % (self._second_line)
+                )
   
   # getters
   def _getIndex(self):
@@ -412,8 +410,6 @@ class Line(object):
   
   def _getText(self):
     return self._text
-    
-  
   
   Text = property(_getText)
   
@@ -477,7 +473,7 @@ class Timing(object):
           self._millis)
       
   def __str__(self):
-    return "hour: %d\nmin: %d\nsec: %d\nmillis: %d" % (self._hour, self._min, self._sec, self._millis)
+    return "%d:%d:%d,%d" % (self._hour, self._min, self._sec, self._millis)
 
   def values(self):
     return self._hour, self._min, self._sec, self._millis
@@ -520,19 +516,19 @@ class Timing(object):
   Time = property(_getTime)
 
 if __name__ == "__main__":
-  if False:
+  if True:
     s = SubtitleFile()
-    s.File = "/Users/dex/Desktop/dollhouse.ass"
+    s.File = "/Users/dex/Development/Python/NoTagApp/dollhouse.ass"
 
     #s.toAss(True)
     #s.toTranscript() 
-    s.toSrt(keep_tag=True)
-    s.toSrt(keep_tag=False)
+    #s.toSrt(keep_tag=True)
+    #s.toSrt(keep_tag=False)
   
     for sub in s.Subs:
       print("\n" + str(sub))
 
-  if True:
+  if False:
     sub = SubtitleFile()
     sub.File = "/Users/dex/Development/Python/NoTagApp/roe.srt"
 

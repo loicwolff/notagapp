@@ -150,11 +150,12 @@ class SubtitleFile(object):
     with open(self._file, "r") as sub:
       index = 0
       for line in sub:
-        sub_entry = Subtitle()
-        index += 1
-        sub_entry.Index = index
         line = line.strip("\r\n")
         if re.search(ass_line_pattern, line):
+          sub_entry = Subtitle()
+          index += 1
+          sub_entry.Index = index
+          
           m = re.search(ass_line_pattern, line)
           start_hour, start_min, start_sec, start_millis, end_hour, end_min, end_sec, end_millis, text = m.groups()
           
@@ -235,9 +236,10 @@ class SubtitleFile(object):
       output_file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\r\n")
 
       for sub in self._subs:
-        output_file.write("Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s\r\n" % (
+        output_file.write("Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\r\n" % (
                             sub.StartTime.toAss(),
                             sub.EndTime.toAss(),
+                            "" if sub.Position is None else "{\pos(%s,%s)}" % (sub.Position),
                             toAssPattern(sub.FirstLine),
                             "" if sub.SecondLine == "" else "\N%s" % (toAssPattern(sub.SecondLine))))
     
@@ -247,8 +249,8 @@ class SubtitleFile(object):
     with open("%s.TRANSCRIPT.txt" % (self._sub_name), "w") as output_file:
       for sub in self._subs:
        output_file.write("%s%s\r\n" % (
-                          removeTag(sub.FirstLine, False), 
-                          "" if sub.SecondLine == "" else "\r\n%s" % (removeTag(sub.SecondLine, False))))
+                          removeTag(sub.FirstLine), 
+                          "" if sub.SecondLine == "" else "\r\n%s" % (removeTag(sub.SecondLine))))
   
   def toSrt(self, keep_tag):
     """generate an SRT file
@@ -258,12 +260,13 @@ class SubtitleFile(object):
     
     with open("%s.%s.srt" % (self._sub_name, "TAG" if keep_tag else "NOTAG"), "w") as output_file:
       for sub in self._subs: 
-        output_file.write(r"%d\r\n%s --> %s\r\n%s%s\r\n\r\n" % (
+        output_file.write("%d\r\n%s%s --> %s\r\n%s%s\r\n\r\n" % (
           sub.Index,
+          "" if sub.Position is None else "{\pos(%s,%s)}" % (sub.Position),
           sub.StartTime.toSrt(),
           sub.EndTime.toSrt(),
-          toSrtPattern(sub.FirstLine) if keep_tag else removeTag(sub.FirstLine, True),
-          "" if sub.SecondLine == "" else "\r\n%s" % (toSrtPattern(sub.SecondLine) if keep_tag else removeTag(sub.SecondLine, True)))) 
+          toSrtPattern(sub.FirstLine) if keep_tag else removeTag(sub.FirstLine),
+          "" if sub.SecondLine == "" else "\r\n%s" % (toSrtPattern(sub.SecondLine) if keep_tag else removeTag(sub.SecondLine)))) 
 
 
   def stats(self):
@@ -499,35 +502,41 @@ class Timing(object):
   Time = property(_getTime)
 
 def test_lib():
-  ass_sub = "{\i1}italic{\i0}"
-  ass_sub = toNoTagAppPattern(ass_sub)
+  ass_sub = toNoTagAppPattern("{\i1}italic{\i0}")
+  srt_sub = toNoTagAppPattern("<i>italic</i>")
+  tag = removeTag("{\font}<i>{\i0}</i>")
+  exotic = removeExoticChar("œŒÆæ")
   
-  assert ass_sub == "italic", ass_sub
-
+  assert ass_sub == "[i]italic[/i]", ass_sub
+  assert srt_sub == "[i]italic[/i]", srt_sub
+  assert tag == "", tag
+  assert exotic == "oeOeAeae", exotic
+  
 if __name__ == "__main__":
+  SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
   if False:
     s = SubtitleFile()
-    s.File = "/Users/dex/Development/Python/NoTagApp/dollhouse.ass"
+    s.File = "%s/dollhouse.ass" % (SUBS_DIR)
 
     #s.toAss(True)
-    #s.toTranscript() 
-    #s.toSrt(keep_tag=True)
-    #s.toSrt(keep_tag=False)
+    s.toTranscript() 
+    s.toSrt(keep_tag=True)
+    s.toSrt(keep_tag=False)
   
-    for sub in s.Subs:
-      print("\n" + str(sub))
+    #for sub in s.Subs:
+    #  print("\n" + str(sub))
 
-  if False:
-    sub = SubtitleFile()
-    sub.File = "/Users/dex/Development/Python/NoTagApp/roe.srt"
-
-    #s.toAss(True)
-    #s.toTranscript() 
-    #s.toSrt(keep_tag=True)
-    #s.toSrt(keep_tag=False)
-  
-    for sub in sub.Subs:
-      print(str(sub) + "\n")
-      
   if True:
+    s = SubtitleFile()
+    s.File = "%s/roe.srt" % (SUBS_DIR)
+
+    s.toAss(True)
+    s.toTranscript() 
+    #s.toSrt(keep_tag=True)
+    s.toSrt(keep_tag=False)
+  
+    #for sub in s.Subs:
+    #  print(str(sub) + "\n")
+      
+  if False:
     test_lib()

@@ -10,8 +10,12 @@ ASS_FILE = 2
 WEIRD_FILE = 3
 
 # tag constants
-ITA_OPEN = "[i]"
-ITA_CLOSE = "[/i]"
+ITA_OPEN = r"[i]"
+ITA_CLOSE = r"[/i]"
+ASS_OPEN = r"{\i1}"
+ASS_CLOSE = r"{\i0}"
+SRT_OPEN = r"<i>"
+SRT_CLOSE = r"</i>"
 
 def removeExoticChar(entry):
   """remove any exotic character from the text to make it more compatible"""
@@ -27,10 +31,21 @@ def removeTag(entry):
   tag_pattern = r"{.*?}|</?font.*?>|</?.*?>"
   return re.sub(tag_pattern, "", entry)
   
+def toNoTagAppPattern(entry):
+  notagapp_pattern = { SRT_OPEN:ITA_OPEN,
+                       SRT_CLOSE:ITA_CLOSE,
+                       ASS_OPEN:ITA_OPEN, 
+                       ASS_CLOSE:ITA_CLOSE }
+                       
+  for key, value in notagapp_pattern.items():
+    entry = entry.replace(key, value)
+
+  return entry
+  
 def toSrtPattern(entry):
   """change the ASS tags into SRT tags"""
-  to_srt_pattern = { r"[i]":r"<i>", 
-                     r"[/i]":r"</i>"#, 
+  to_srt_pattern = { ITA_OPEN:SRT_OPEN, 
+                     ITA_CLOSE:SRT_CLOSE#, 
                      #r"{\u1}":r"<u>", 
                      #r"{\u0}":r"</u>", 
                      #r"{\b1}":r"<b>", 
@@ -43,8 +58,8 @@ def toSrtPattern(entry):
   
 def toAssPattern(entry):
   """change the SRT tags into ASS tags"""
-  to_ass_pattern = { r"[i]":r"{\i1}", 
-                     r"[/i]":r"{\i0}"#, 
+  to_ass_pattern = { ITA_OPEN:ASS_OPEN, 
+                     ITA_CLOSE:ASS_CLOSE#, 
                      #r"<u>":r"{\u1}", 
                      #r"</u>":r"{\u0}", 
                      #r"<b>":r"{\b1}", 
@@ -67,23 +82,14 @@ def parseAssTiming(timing):
   """
   return re.match(r"Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
                   r"(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
-                  
 
 def parseWeirdTiming(timing):
   """return a tuple of the start time, the length of the subtitle"""
   return re.match(r"^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: .*:.*:.*:.*$", timing).groups()
 
-def toNoTagAppPattern(entry):
-  notagapp_pattern = { r"<i>":ITA_OPEN,
-                       r"</i>":ITA_CLOSE,
-                       r"{\i1}":ITA_OPEN, 
-                       r"{\i0}":ITA_CLOSE }
-                       
-  for key, value in notagapp_pattern.items():
-    entry = entry.replace(key, value)
-  return entry
 
 class SubtitleFile(object):
+  """"""
   _subs = []
   _file = ""
   _sub_name = ""
@@ -144,7 +150,7 @@ class SubtitleFile(object):
     with open(self._file, "r") as sub:
       index = 0
       for line in sub:
-        sub_entry = Subtitle(self._type)
+        sub_entry = Subtitle()
         index += 1
         sub_entry.Index = index
         line = line.strip("\r\n")
@@ -322,7 +328,7 @@ class Subtitle(object):
   _second_line = ""
   _pos = None
   
-  def __init__(self, type = SRT_FILE):
+  def __init__(self):
     self._start_time = Timing()
     self._end_time = Timing()
   
@@ -390,35 +396,12 @@ class Subtitle(object):
   FirstLine = property(_getFirstLine, _setFirstLine)
   SecondLine = property(_getSecondLine, _setSecondLine)
   Position = property(_getPosition, _setPosition)
-
-class Line(object):
-  """
-  """
-  _text = None
-  _openIta = None
-  _closeIta = None
-  _pos = None
-  
-  def __init__(self, text, pos = None):
-    self._text = text
-    
-    if pos is not None:
-      self._pos = pos
-    
-  def hasPosition(self):
-    return self._pos is not None
-  
-  def _getText(self):
-    return self._text
-  
-  Text = property(_getText)
   
 class Timing(object):
   _millis = 0
   _sec = 0
   _min = 0
   _hour = 0
-  _type = SRT_FILE
   
   @staticmethod
   def parseSrt(timing):
@@ -451,7 +434,7 @@ class Timing(object):
     
     return start_time, end_time
   
-  def __init__(self, hour = 0, min = 0, sec = 0, millis = 0, type = SRT_FILE):
+  def __init__(self, hour = 0, min = 0, sec = 0, millis = 0):
     self._millis = int(millis)
     self._sec = int(sec)
     self._min = int(min)
@@ -515,8 +498,14 @@ class Timing(object):
   Hour = property(_getHour, _setHour)
   Time = property(_getTime)
 
+def test_lib():
+  ass_sub = "{\i1}italic{\i0}"
+  ass_sub = toNoTagAppPattern(ass_sub)
+  
+  assert ass_sub == "italic", ass_sub
+
 if __name__ == "__main__":
-  if True:
+  if False:
     s = SubtitleFile()
     s.File = "/Users/dex/Development/Python/NoTagApp/dollhouse.ass"
 
@@ -539,3 +528,6 @@ if __name__ == "__main__":
   
     for sub in sub.Subs:
       print(str(sub) + "\n")
+      
+  if True:
+    test_lib()

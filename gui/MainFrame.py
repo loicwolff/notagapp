@@ -30,15 +30,15 @@ class MainFrame(wx.Frame):
   _zip_combo = None
   
   def __init__(self):
-    wx.Frame.__init__(self, None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(550, 300), 
+    wx.Frame.__init__(self, None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(510, 300), 
                         wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION | wx.STAY_ON_TOP | wx.SYSTEM_MENU)
     
     wx.InitAllImageHandlers()
     self.initControls()
     
     self._to_transcript_checkbox.SetFocus()
-    self.SetMinSize(wx.Size(-1, 125))
-    self.SetMaxSize(wx.Size(-1, 125))
+    self.SetMinSize(wx.Size(-1, 110))
+    self.SetMaxSize(wx.Size(-1, 110))
 
     self.Center()
     self.Show(True)
@@ -66,7 +66,7 @@ class MainFrame(wx.Frame):
                                 [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
     self._srt_combo.SetSelection(2)
     
-    self._zip_combo = wx.Choice(mainpanel, self._ZIP_COMBO_ID, wx.DefaultPosition, wx.Size(130, -1),
+    self._zip_combo = wx.Choice(mainpanel, self._ZIP_COMBO_ID, wx.DefaultPosition, wx.Size(105, -1),
                                 [u"zip&keep", u"zip&delete"])
     
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)

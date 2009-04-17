@@ -110,7 +110,7 @@ class DropFile(wx.FileDropTarget):
   def __init__(self, parent):
     wx.FileDropTarget.__init__(self)
     self._parent = parent
-    self._generated_files = []
+    self._generated_files = set()
         
   def OnDropFiles(self, x, y, files):
     do_transcript, do_srt, srt_choice, do_ssa, do_zip, keep_zip = self._parent.getGenerateFiles()
@@ -118,24 +118,24 @@ class DropFile(wx.FileDropTarget):
     srt = SubtitleFile()
     for file in files:
       srt.File = file
-      self._generated_files.append(srt.File)
+      self._generated_files.add(srt.File)
       
       if do_ssa:
         srt.toSSA()
-        self._generated_files.append(u"%s.ssa" % (srt.SubName))
+        self._generated_files.add(u"%s.ssa" % (srt.SubName))
       
       if do_srt:
         if srt_choice == 0:
           srt.toSRT(keep_tag=True)
-          self._generated_files.append(u"%s.TAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s.TAG.srt" % (srt.SubName))
         elif srt_choice == 1:
           srt.toSRT(keep_tag=False)
-          self._generated_files.append(u"%s.NOTAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s.NOTAG.srt" % (srt.SubName))
         else:
           srt.toSRT(keep_tag=True)
           srt.toSRT(keep_tag=False)
-          self._generated_files.append(u"%s.TAG.srt" % (srt.SubName))
-          self._generated_files.append(u"%s.NOTAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s.TAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s.NOTAG.srt" % (srt.SubName))
           
       if do_transcript:
         srt.toTranscript()

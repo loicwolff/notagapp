@@ -68,6 +68,7 @@ class MainFrame(wx.Frame):
     
     self._zip_combo = wx.Choice(mainpanel, self._ZIP_COMBO_ID, wx.DefaultPosition, wx.Size(105, -1),
                                 [u"zip&keep", u"zip&delete"])
+    self._zip_combo.SetSelection(0)
     
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
     cb_sizer.Add(self._to_transcript_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)

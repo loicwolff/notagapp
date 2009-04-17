@@ -278,8 +278,8 @@ class SubtitleFile(object):
           sub.EndTime.toSRT(),
           "" if sub.Position is None or not keep_tag else r"{\pos(%s,%s)}" % (sub.Position),
           "" if sub.Fade is None or not keep_tag else r"{\fad(%s,%s)}" % (sub.Fade),
-          toSRTPattern(sub.FirstLine) if keep_tag else removeTag(sub.FirstLine, True),
-          "" if sub.SecondLine == "" else "\r\n%s" % (toSRTPattern(sub.SecondLine) if keep_tag else removeTag(sub.SecondLine, True)))) 
+          toSRTPattern(sub.FirstLine),
+          "" if sub.SecondLine == "" else "\r\n%s" % (toSRTPattern(sub.SecondLine))))
 
 
   def stats(self):
@@ -325,7 +325,7 @@ class SubtitleFile(object):
         self._sub_name = re.match(re.compile(r"(.*).srt"), file).group(1)
         self._parseSRT()
       elif self._type == SSA_FILE:
-        self._sub_name = re.match(re.compile(r"(.*).ass|ssa"), file).group(1)
+        self._sub_name = re.match(re.compile(r"(.*).(:?ass|ssa)"), file).group(1)
         self._parseSSA()
       elif self._type == WEIRD_FILE:
         self._sub_name = re.match(re.compile(r"(.*).txt"), file).group(1)
@@ -552,7 +552,7 @@ def test_lib():
   
 if __name__ == "__main__":
   SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
-  if True:
+  if False:
     s = SubtitleFile()
     s.File = "%s/dollhouse.ass" % (SUBS_DIR)
 

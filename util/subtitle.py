@@ -313,6 +313,9 @@ class SubtitleFile(object):
       
   def _getSubs(self):
     return self._subs
+    
+  def _getSubName(self):
+    return self._sub_name
   
   # setters
   def _setFile(self, file):
@@ -333,6 +336,7 @@ class SubtitleFile(object):
 
   # properties
   File = property(_getFile, _setFile)
+  SubName = property(_getSubName)
   Subs = property(_getSubs)
 
 class Subtitle(object):

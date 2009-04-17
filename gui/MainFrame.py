@@ -51,14 +51,13 @@ class MainFrame(wx.Frame):
     drop_sizer = wx.StaticBoxSizer(static_box, wx.VERTICAL)
     drop_sizer.Add(drop_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     
-    self._to_ass_checkbox = wx.CheckBox(mainpanel, self._TO_ASS_CHECKBOX_ID, u"")
+    self._to_ass_checkbox = wx.CheckBox(mainpanel, self._TO_ASS_CHECKBOX_ID, u"To SSA")
     self._to_srt_checkbox = wx.CheckBox(mainpanel, self._TO_SRT_CHECKBOX_ID, u"")
     self._to_transcript_checkbox = wx.CheckBox(mainpanel, self._TO_TRANSCRIPT_CHECKBOX_ID, u"Transcript")
     
-    self._ass_combo = wx.Choice(mainpanel, self._ASS_COMBO_ID, wx.DefaultPosition, wx.Size(130, -1), 
-                                ["tag.ass", "notag.ass", "tag&notag.ass"])
     self._srt_combo = wx.Choice(mainpanel, self._SRT_COMBO_ID, wx.DefaultPosition, wx.Size(130, -1), 
                                 ["tag.srt", "notag.srt", "tag&notag.srt"])
+    self._srt_combo.SetSelection(2)
     
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
     cb_sizer.Add(self._to_transcript_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
@@ -67,7 +66,7 @@ class MainFrame(wx.Frame):
     cb_sizer.Add(self._srt_combo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 10)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_ass_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    cb_sizer.Add(self._ass_combo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 10)
+    #cb_sizer.Add(self._ass_combo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 10)
     
     self._to_transcript_checkbox.SetValue(False)
     self._to_srt_checkbox.SetValue(True)
@@ -89,7 +88,7 @@ class MainFrame(wx.Frame):
     """Return a tuble of the checkboxes values"""
     return (self._to_transcript_checkbox.IsChecked(), 
             self._to_srt_checkbox.IsChecked(), self._srt_combo.GetCurrentSelection(),
-            self._to_ass_checkbox.IsChecked(), self._ass_combo.GetCurrentSelection())
+            self._to_ass_checkbox.IsChecked())#, self._ass_combo.GetCurrentSelection())
 
 class DropFile(wx.FileDropTarget):
   """"""
@@ -99,30 +98,24 @@ class DropFile(wx.FileDropTarget):
     self._parent = parent
         
   def OnDropFiles(self, x, y, files):
-    do_transcript, do_srt, tag_or_notag_srt, do_ass, tag_or_notag_ass = self._parent.getGenerateFiles()
+    do_transcript, do_srt, srt_choice, do_ssa = self._parent.getGenerateFiles()
 
     srt = SubtitleFile()
     for file in files:
       srt.File = file
-      if do_ass:
-        if tag_or_notag_ass == 0:
-          srt.toAss(True)
-        elif tag_or_notag_ass == 1:
-          srt.toAss(False)
-        else:
-          srt.toAss(True)
-          srt.toAss(False)
-      
-      if do_transcript:
-        srt.toTranscript()
+      if do_ssa:
+        srt.toSSA()
       
       if do_srt:
-        if tag_or_notag_srt == 0:
-          srt.toSRT(True)
-        elif tag_or_notag_srt == 1:
-          srt.toSRT(False)
+        if srt_choice == 0:
+          srt.toSRT(keep_tag=True)
+        elif srt_choice == 1:
+          srt.toSRT(keep_tag=False)
         else:
-          srt.toSRT(True)
-          srt.toSRT(False)
+          srt.toSRT(keep_tag=True)
+          srt.toSRT(keep_tag=False)
+          
+      if do_transcript:
+        srt.toTranscript()          
           
       print("%s subtitle(s) and %s line(s) processed" % (srt.stats()))

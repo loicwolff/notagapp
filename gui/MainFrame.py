@@ -123,28 +123,31 @@ class DropFile(wx.FileDropTarget):
       
       if do_ssa:
         srt.toSSA()
-        self._generated_files.add(u"%s.ssa" % (srt.SubName))
+        self._generated_files.add(u"%s/%s.ssa" % (srt.SubDir, srt.SubName, srt.SubExt))
+        self._generated_files.add(u"%s/%s.ass" % (srt.SubDir, srt.SubName, srt.SubExt))
       
       if do_srt:
         if srt_choice == 0:
           srt.toSRT(keep_tag=True)
-          self._generated_files.add(u"%s.TAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s/%s.TAG.srt" % (srt.SubDir, srt.SubName))
         elif srt_choice == 1:
           srt.toSRT(keep_tag=False)
-          self._generated_files.add(u"%s.NOTAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s/%s.NOTAG.srt" % (srt.SubDir, srt.SubName))
         else:
           srt.toSRT(keep_tag=True)
           srt.toSRT(keep_tag=False)
-          self._generated_files.add(u"%s.TAG.srt" % (srt.SubName))
-          self._generated_files.add(u"%s.NOTAG.srt" % (srt.SubName))
+          self._generated_files.add(u"%s/%s.TAG.srt" % (srt.SubDir, srt.SubName))
+          self._generated_files.add(u"%s/%s.NOTAG.srt" % (srt.SubDir, srt.SubName))
           
       if do_transcript:
         srt.toTranscript()
       
       if do_zip:
-        zip_file = zipfile.ZipFile("%s.zip" % (srt.SubName), "w", zipfile.ZIP_DEFLATED)
+        zip_file = zipfile.ZipFile(u"%s/%s.zip" % (srt.SubDir, srt.SubName), "w", zipfile.ZIP_DEFLATED)
         for gen in self._generated_files:
-          zip_file.write(gen, os.path.basename(gen))
+          print(str(gen))
+          if os.path.exists(gen):
+            zip_file.write(str(gen), str(os.path.basename(gen)))
         zip_file.close()  
         
         if not keep_zip:

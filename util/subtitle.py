@@ -273,7 +273,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     
     with open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w") as output_file:
       for sub in self._subs:
-       output_file.write(removeTag("\n".join(sub.Lines), True))
+        #print("\n".join(sub.Lines))
+        output_file.write(removeTag("\n".join(sub.Lines), True) + "\n")
   
   def toSRT(self, keep_tag):
     """generate an SRT file
@@ -316,7 +317,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   def _isSubtitle(self, filename):
     if filename[-4:] == u".srt":
       self._type = SRT_FILE
-    elif filename[-4:] == u".ass" or file[-4:] == u".ssa":
+    elif filename[-4:] == u".ass":# or file[-4:] == u".ssa":
       self._type = SSA_FILE
     elif filename[-4:] == ".txt":
       self._type = WEIRD_FILE
@@ -350,7 +351,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     
     if self._type == u".srt":
       self._parseSRT()
-    elif self._type == u".ssa" or u".ass":
+    elif self._type == u".ass":# or u".ssa":
       self._parseSSA()
     elif self._type == u".txt":
       self._parseWeird()
@@ -543,7 +544,7 @@ class Timing(object):
 def test_lib():
   ssa_sub = toNoTagAppPattern("{\i1}italic{\i0}")
   srt_sub = toNoTagAppPattern("<i>italic</i>")
-  tag = removeTag("{\font}<i>{\i0}</i>[i][/i]", True)
+  tag = removeTag("{\font}<i>{\i0}</i>[i][/i]<u></u></b><b>", True)
   exotic = removeExoticChar("œŒÆæ")
   
   assert ssa_sub == "[i]italic[/i]", ssa_sub
@@ -553,7 +554,8 @@ def test_lib():
 
 if __name__ == "__main__":
   SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
-  if True:
+  
+  if False:
     s = SubtitleFile()
     s.File = "%s/dollhouse.ass" % (SUBS_DIR)
     
@@ -566,7 +568,7 @@ if __name__ == "__main__":
     #for sub in s.Subs:
     #  print(str(sub))
   
-  if True:
+  if False:
     s = SubtitleFile()
     s.File = "%s/roe.srt" % (SUBS_DIR)
     

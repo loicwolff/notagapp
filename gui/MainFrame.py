@@ -142,17 +142,19 @@ class DropFile(wx.FileDropTarget):
       if do_transcript:
         srt.toTranscript()
       
-      if do_zip:
-        zip_file = zipfile.ZipFile(u"%s/%s.zip" % (srt.SubDir, srt.SubName), "w", zipfile.ZIP_DEFLATED)
-        for gen in self._generated_files:
-          print(str(gen))
-          if os.path.exists(gen):
-            zip_file.write(str(gen), str(os.path.basename(gen)))
-        zip_file.close()  
-        
-        if not keep_zip:
-          for gen in self._generated_files:
-            if gen != srt.File:
-              os.remove(gen)
-            
       print("%s subtitle(s) and %s line(s) processed\ntoo long lines:\n%s" % (srt.stats()))
+      
+    if do_zip:
+      zip_file = zipfile.ZipFile(u"%s/%s.zip" % (srt.SubDir, srt.SubName), "w", zipfile.ZIP_DEFLATED)
+      for gen in self._generated_files:
+        print(str(gen))
+        if os.path.exists(gen):
+          zip_file.write(str(gen), str(os.path.basename(gen)))
+      zip_file.close()  
+        
+      if not keep_zip:
+        for gen in self._generated_files:
+          if gen != srt.File and os.path.exists(gen):
+            os.remove(gen)
+            
+      

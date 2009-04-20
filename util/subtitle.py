@@ -281,7 +281,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     except the italics, are removed
     """
     
-    with open("%s/%s%s.%s" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG", SRT), "w") as output_file:
+    with open("%s/%s.%s.%s" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG", SRT), "w") as output_file:
       for sub in self._subs:
         output_file.write("%d\r\n%s --> %s\r\n%s%s%s\r\n\r\n" % (
           sub.Index,
@@ -334,6 +334,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   def _getSubName(self):
     return self._sub_name
     
+  def _getSubType(self):
+    return self._type
+    
   def _getSubDir(self):
     return self._sub_dir
   
@@ -355,6 +358,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   # properties
   File = property(_getFile, _setFile)
   SubName = property(_getSubName)
+  SubExt = property(_getSubType)
   SubDir = property(_getSubDir)
   Subs = property(_getSubs)
 

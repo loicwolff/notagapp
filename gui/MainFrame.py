@@ -1,10 +1,13 @@
 #/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import wx
-from util.subtitle import SubtitleFile
+# python lib
 import zipfile
 import os
+
+# external lib
+import wx
+from util.subtitle import SubtitleFile
 
 class MainFrame(wx.Frame):
   """This is the main frame of the application.
@@ -112,6 +115,7 @@ class DropFile(wx.FileDropTarget):
     wx.FileDropTarget.__init__(self)
     self._parent = parent
     self._generated_files = set()
+    self._files_to_keep = set()
         
   def OnDropFiles(self, x, y, files):
     do_transcript, do_srt, srt_choice, do_ssa, do_zip, keep_zip = self._parent.getGenerateFiles()
@@ -120,6 +124,7 @@ class DropFile(wx.FileDropTarget):
     for file in files:
       srt.File = file
       self._generated_files.add(srt.File)
+      self._files_to_keep.add(srt.File)
       
       if do_ssa:
         srt.toSSA()
@@ -154,7 +159,6 @@ class DropFile(wx.FileDropTarget):
         
       if not keep_zip:
         for gen in self._generated_files:
-          if gen != srt.File and os.path.exists(gen):
+          if gen not in self._files_to_keep and os.path.exists(gen):
             os.remove(gen)
-            
-      
+  

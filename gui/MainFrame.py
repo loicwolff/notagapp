@@ -128,8 +128,8 @@ class DropFile(wx.FileDropTarget):
       
       if do_ssa:
         srt.toSSA()
-        self._generated_files.add(u"%s/%s.ssa" % (srt.SubDir, srt.SubName))
         self._generated_files.add(u"%s/%s.ass" % (srt.SubDir, srt.SubName))
+        #self._generated_files.add(u"%s/%s.ssa" % (srt.SubDir, srt.SubName))
       
       if do_srt:
         if srt_choice == 0:
@@ -152,7 +152,6 @@ class DropFile(wx.FileDropTarget):
     if do_zip:
       zip_file = zipfile.ZipFile(u"%s/%s.zip" % (srt.SubDir, srt.SubName), "w", zipfile.ZIP_DEFLATED)
       for gen in self._generated_files:
-        print(str(gen))
         if os.path.exists(gen):
           zip_file.write(str(gen), str(os.path.basename(gen)))
       zip_file.close()  

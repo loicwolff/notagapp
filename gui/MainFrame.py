@@ -123,8 +123,8 @@ class DropFile(wx.FileDropTarget):
       
       if do_ssa:
         srt.toSSA()
-        self._generated_files.add(u"%s/%s.ssa" % (srt.SubDir, srt.SubName, srt.SubExt))
-        self._generated_files.add(u"%s/%s.ass" % (srt.SubDir, srt.SubName, srt.SubExt))
+        self._generated_files.add(u"%s/%s.ssa" % (srt.SubDir, srt.SubName))
+        self._generated_files.add(u"%s/%s.ass" % (srt.SubDir, srt.SubName))
       
       if do_srt:
         if srt_choice == 0:
@@ -152,6 +152,7 @@ class DropFile(wx.FileDropTarget):
         
         if not keep_zip:
           for gen in self._generated_files:
-            os.remove(gen)
+            if gen != srt.File:
+              os.remove(gen)
             
       print("%s subtitle(s) and %s line(s) processed\ntoo long lines:\n%s" % (srt.stats()))

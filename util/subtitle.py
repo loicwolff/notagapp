@@ -287,8 +287,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           sub.Index,
           sub.StartTime.toSRT(),
           sub.EndTime.toSRT(),
-          "" if sub.Position is None or not keep_tag else r"{\pos(%s,%s)}" % (sub.Position),
-          "" if sub.Fade is None or not keep_tag else r"{\fad(%s,%s)}" % (sub.Fade),
+          "" if sub.Position is None or not keep_tag else "{\pos(%s,%s)}" % (sub.Position),
+          "" if sub.Fade is None or not keep_tag else "{\fad(%s,%s)}" % (sub.Fade),
           toSRTPattern("\n".join(sub.Lines))))
 
   

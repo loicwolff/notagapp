@@ -18,8 +18,8 @@ SRT_ITA_CLOSE = "</i>"
 
 NTA_BOLD_OPEN = "[b]"
 NTA_BOLD_CLOSE = "[/b]"
-SSA_BOLD_OPEN = "{\b1}"
-SSA_BOLD_CLOSE = "{\b0}"
+SSA_BOLD_OPEN = r"{\b1}"
+SSA_BOLD_CLOSE = r"{\b0}"
 SRT_BOLD_OPEN = "<b>"
 SRT_BOLD_CLOSE = "</b>"
 

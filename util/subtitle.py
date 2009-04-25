@@ -5,34 +5,33 @@ from __future__ import with_statement
 import re
 import os
 
-__author__ = "Loïc Wolff <loicwolff (at) gmail.com",
-__version__ = 0, 1, 1
+__author__ = "Loïc Wolff <loicwolff (at) gmail.com"
 
 # tag constants
 NTA_ITA_OPEN = "[i]"
 NTA_ITA_CLOSE = "[/i]"
-SSA_ITA_OPEN = "{\i1}"
-SSA_ITA_CLOSE = "{\i0}"
+ASS_ITA_OPEN  = "{\i1}"
+ASS_ITA_CLOSE = "{\i0}"
 SRT_ITA_OPEN = "<i>"
 SRT_ITA_CLOSE = "</i>"
 
 NTA_BOLD_OPEN = "[b]"
 NTA_BOLD_CLOSE = "[/b]"
-SSA_BOLD_OPEN = r"{\b1}"
-SSA_BOLD_CLOSE = r"{\b0}"
+ASS_BOLD_OPEN  = r"{\b1}"
+ASS_BOLD_CLOSE = r"{\b0}"
 SRT_BOLD_OPEN = "<b>"
 SRT_BOLD_CLOSE = "</b>"
 
 NTA_UNDER_OPEN = "[u]"
 NTA_UNDER_CLOSE = "[/u]"
-SSA_UNDER_OPEN = "{\u1}"
-SSA_UNDER_CLOSE = "{\u0}"
+ASS_UNDER_OPEN  = "{\u1}"
+ASS_UNDER_CLOSE = "{\u0}"
 SRT_UNDER_OPEN = "<u>"
 SRT_UNDER_CLOSE = "</u>"
 
 # file extensions
 SRT = "srt"
-SSA = "ssa" # "ass"?
+ASS = "ass"
 
 def removeExoticChar(entry):
   """remove any exotic character from the text to make it more compatible"""
@@ -42,7 +41,7 @@ def removeExoticChar(entry):
   return entry
 
 def removeTag(entry, alltag=False):
-  """remove SRT and SSA tags
+  """remove SRT and ASS tags
   if alltag, NoTagApp specials tag are removed too
   """
   tag_pattern = r"{.*?}|</?font.*?>|</?.*?>%s" % (r"|\[/?.?\]" if alltag else "")
@@ -50,20 +49,20 @@ def removeTag(entry, alltag=False):
   return re.sub(tag_pattern, "", entry)
 
 def toNoTagAppPattern(entry):
-  """replace SSA and SRT specific tags by NoTagApp tags"""
+  """replace ASS and SRT specific tags by NoTagApp tags"""
   notagapp_pattern = { # italic tags
                        SRT_ITA_OPEN:NTA_ITA_OPEN,
                        SRT_ITA_CLOSE:NTA_ITA_CLOSE,
-                       SSA_ITA_OPEN:NTA_ITA_OPEN,
-                       SSA_ITA_CLOSE:NTA_ITA_CLOSE,
+                       ASS_ITA_OPEN :NTA_ITA_OPEN,
+                       ASS_ITA_CLOSE:NTA_ITA_CLOSE,
                        # bold tags
-                       SSA_BOLD_OPEN:NTA_BOLD_OPEN,
-                       SSA_BOLD_CLOSE:NTA_BOLD_CLOSE,
+                       ASS_BOLD_OPEN :NTA_BOLD_OPEN,
+                       ASS_BOLD_CLOSE:NTA_BOLD_CLOSE,
                        SRT_BOLD_OPEN:NTA_BOLD_OPEN,
                        SRT_BOLD_CLOSE:NTA_BOLD_CLOSE,
                        # underlined tags
-                       SSA_UNDER_OPEN:NTA_UNDER_OPEN,
-                       SSA_UNDER_CLOSE:NTA_UNDER_CLOSE,
+                       ASS_UNDER_OPEN :NTA_UNDER_OPEN,
+                       ASS_UNDER_CLOSE:NTA_UNDER_CLOSE,
                        SRT_UNDER_OPEN:NTA_UNDER_OPEN,
                        SRT_UNDER_CLOSE:NTA_UNDER_CLOSE }
   
@@ -72,37 +71,48 @@ def toNoTagAppPattern(entry):
   
   return entry
 
-def toSRTPattern(entry):
+def toSRTPattern(entry, keep_tag=True):
   """change the SSA tags into SRT tags"""
+  to_srt_tagged_pattern = { # italics tags
+                            NTA_ITA_OPEN:SRT_ITA_OPEN,
+                            NTA_ITA_CLOSE:SRT_ITA_CLOSE,     
+                            #bold tags                       
+                            NTA_BOLD_OPEN:SRT_BOLD_OPEN,     
+                            NTA_BOLD_CLOSE:SRT_BOLD_CLOSE,   
+                            # underlined tags                
+                            NTA_UNDER_OPEN:SRT_UNDER_OPEN,   
+                            NTA_UNDER_CLOSE:SRT_UNDER_CLOSE  
+  }
+                     
   to_srt_pattern = { # italics tags
                      NTA_ITA_OPEN:SRT_ITA_OPEN,
                      NTA_ITA_CLOSE:SRT_ITA_CLOSE,
                      #bold tags
-                     NTA_BOLD_OPEN:SRT_BOLD_OPEN,
-                     NTA_BOLD_CLOSE:SRT_BOLD_CLOSE,
+                     NTA_BOLD_OPEN:"",
+                     NTA_BOLD_CLOSE:"",
                      # underlined tags
-                     NTA_UNDER_OPEN:SRT_UNDER_OPEN,
-                     NTA_UNDER_CLOSE:SRT_UNDER_CLOSE
-                     }
+                     NTA_UNDER_OPEN:"",
+                     NTA_UNDER_CLOSE:""
+  }
   
-  for key, value in to_srt_pattern.items():
+  for key, value in to_srt_tagged_pattern.items() if keep_tag else to_srt_pattern.items():
     entry = entry.replace(key, value)
   return entry
 
 def toSSAPattern(entry):
   """change the SRT tags into SSA tags"""
-  to_ssa_pattern = { # italics tags
-                     NTA_ITA_OPEN:SSA_ITA_OPEN,
-                     NTA_ITA_CLOSE:SSA_ITA_CLOSE,
+  to_ass_pattern = { # italics tags
+                     NTA_ITA_OPEN:ASS_ITA_OPEN ,
+                     NTA_ITA_CLOSE:ASS_ITA_CLOSE,
                      # bold tags
-                     NTA_BOLD_OPEN:SSA_BOLD_OPEN,
-                     NTA_BOLD_CLOSE:SSA_BOLD_CLOSE,
+                     NTA_BOLD_OPEN:ASS_BOLD_OPEN ,
+                     NTA_BOLD_CLOSE:ASS_BOLD_CLOSE,
                      # underlined tags
-                     NTA_UNDER_OPEN:SSA_UNDER_OPEN,
-                     NTA_UNDER_CLOSE:SSA_UNDER_CLOSE
+                     NTA_UNDER_OPEN:ASS_UNDER_OPEN ,
+                     NTA_UNDER_CLOSE:ASS_UNDER_CLOSE
                      }
   
-  for key, value in to_ssa_pattern.items():
+  for key, value in to_ass_pattern.items():
     entry = entry.replace(key, value)
   return entry
 
@@ -170,18 +180,18 @@ class SubtitleFile(object):
   
   def _parseSSA(self):
     """"""
-    ssa_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," +
+    ass_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," +
                                   r"(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
     with open(self._file, "r") as sub:
       index = 0
       for line in sub:
         line = line.strip("\r\n").strip("\n")
-        if re.search(ssa_line_pattern, line):
+        if re.search(ass_line_pattern, line):
           sub_entry = Subtitle()
           index += 1
           sub_entry.Index = index
           
-          m = re.search(ssa_line_pattern, line)
+          m = re.search(ass_line_pattern, line)
           start_hour, start_min, start_sec, start_millis, end_hour, end_min, end_sec, end_millis, text = m.groups()
           
           if re.search(r"{\\pos\(\d{1,4},\d{1,4}\)}", text):
@@ -304,7 +314,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           sub.EndTime.toSRT(),
           "" if sub.Position is None or not keep_tag else "{\pos(%s,%s)}" % (sub.Position),
           "" if sub.Fade is None or not keep_tag else "{\fad(%s,%s)}" % (sub.Fade),
-          toSRTPattern("\n".join(sub.Lines))))
+          toSRTPattern("\n".join(sub.Lines), keep_tag)))
   
   def stats(self):
     """return a tuple with:
@@ -555,12 +565,12 @@ class Timing(object):
   Time = property(_getTime)
 
 def test_lib():
-  ssa_sub = toNoTagAppPattern("{\i1}italic{\i0}")
+  ass_sub = toNoTagAppPattern("{\i1}italic{\i0}")
   srt_sub = toNoTagAppPattern("<i>italic</i>")
-  tag = removeTag("{\font}<i>{\i0}</i>[i][/i]<u></u></b><b>", True)
+  tag = removeTag("{\font}<i>{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>", False)
   exotic = removeExoticChar("œŒÆæ")
   
-  assert ssa_sub == "[i]italic[/i]", ssa_sub
+  assert ass_sub == "[i]italic[/i]", ass_sub
   assert srt_sub == "[i]italic[/i]", srt_sub
   assert tag == "", tag
   assert exotic == "oeOeAeae", exotic
@@ -569,6 +579,13 @@ if __name__ == "__main__":
   SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
   
   if True:
+    s = SubtitleFile()
+    s.File = "/Users/dex/Desktop/My.Name.Is.Earl.423.lol.VF.srt"
+    
+    for sub in s.Subs:
+      print removeTag("".join(sub.Lines), True)
+  
+  if False:
     s = SubtitleFile()
     s.File = "%s/dollhouse.ass" % (SUBS_DIR)
     

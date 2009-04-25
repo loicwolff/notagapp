@@ -175,7 +175,7 @@ class SubtitleFile(object):
     with open(self._file, "r") as sub:
       index = 0
       for line in sub:
-        line = line.strip("\r\n")
+        line = line.strip("\r\n").strip("\n")
         if re.search(ssa_line_pattern, line):
           sub_entry = Subtitle()
           index += 1
@@ -211,7 +211,7 @@ class SubtitleFile(object):
       index = 0
       
       for line in sub:
-        line = line.strip("\r\n")
+        line = line.strip("\r\n").strip("\n")
         
         # match timing line
         if re.match(r"^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: (.*):(.*):(.*):(.*)$", line):
@@ -270,28 +270,41 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   
   def toTranscript(self):
     """write the transcript of the subtitle"""
-    
+
+    to_join = False
     with open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w") as output_file:
       for sub in self._subs:
-        #print("\n".join(sub.Lines))
-        output_file.write(removeTag("\n".join(sub.Lines), True) + "\n")
-  
+        if to_join:
+          transcript = transcript + " " + removeTag("\n".join(sub.Lines), True)
+        else:
+          transcript = removeTag("\n".join(sub.Lines), True)
+        transcript = re.sub('^- ', '', transcript) # removing dialog 
+        transcript = re.sub('\n- ', '\n', transcript) # removing dialog on second line
+        local_join = re.compile('[\w,]\n').search(transcript)
+        if local_join:
+          transcript = re.sub('\n', ' ', transcript)
+        join = re.compile('[\w,]$').search(transcript)
+        if join:
+          to_join = True
+          continue
+        else:
+          to_join = False
+        output_file.write(transcript + "\n")
+        
   def toSRT(self, keep_tag):
     """generate an SRT file
-    if keep_tag is at False, the position tags,
-    except the italics, are removed
+    if keep_tag is False, the position and format tags, except the italics, are removed
     """
     
     with open("%s/%s.%s.%s" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG", SRT), "w") as output_file:
       for sub in self._subs:
-        output_file.write("%d\r\n%s --> %s\r\n%s%s%s\r\n\r\n" % (
+        output_file.write("%d\n%s --> %s\n%s%s%s\n\n" % (
           sub.Index,
           sub.StartTime.toSRT(),
           sub.EndTime.toSRT(),
           "" if sub.Position is None or not keep_tag else "{\pos(%s,%s)}" % (sub.Position),
           "" if sub.Fade is None or not keep_tag else "{\fad(%s,%s)}" % (sub.Fade),
           toSRTPattern("\n".join(sub.Lines))))
-
   
   def stats(self):
     """return a tuple with:
@@ -356,7 +369,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     elif self._type == u".txt":
       self._parseWeird()
   
-  # properties
+  # properties  
   File = property(_getFile, _setFile)
   SubName = property(_getSubName)
   SubExt = property(_getSubType)
@@ -555,13 +568,13 @@ def test_lib():
 if __name__ == "__main__":
   SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
   
-  if False:
+  if True:
     s = SubtitleFile()
     s.File = "%s/dollhouse.ass" % (SUBS_DIR)
     
-    #s.toTranscript()
-    s.toSRT(keep_tag=True)
-    s.toSRT(keep_tag=False)
+    s.toTranscript()
+    #s.toSRT(keep_tag=True)
+    #s.toSRT(keep_tag=False)
     
     print(s.stats())
     
@@ -580,5 +593,6 @@ if __name__ == "__main__":
     #for sub in s.Subs:
     #  print(str(sub))
   
-  if True:
+  if False:
     test_lib()
+    

@@ -7,10 +7,6 @@ Created by Loïc Wolff on 2009-04-25.
 Copyright (c) 2009 loicwolff.eu. All rights reserved.
 """
 
-# file extensions
-SRT = "srt"
-ASS = "ass"
-
 # tag constants
 NTA_ITA_OPEN = "[i]"
 NTA_ITA_CLOSE = "[/i]"

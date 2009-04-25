@@ -60,7 +60,7 @@ class MainFrame(wx.Frame):
     drop_sizer = wx.StaticBoxSizer(static_box, wx.VERTICAL)
     drop_sizer.Add(drop_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     
-    self._to_ass_checkbox = wx.CheckBox(mainpanel, self._TO_ASS_CHECKBOX_ID, u"To SSA")
+    self._to_ass_checkbox = wx.CheckBox(mainpanel, self._TO_ASS_CHECKBOX_ID, u"To ASS")
     self._to_srt_checkbox = wx.CheckBox(mainpanel, self._TO_SRT_CHECKBOX_ID, u"")
     self._to_transcript_checkbox = wx.CheckBox(mainpanel, self._TO_TRANSCRIPT_CHECKBOX_ID, u"Transcript")
     self._to_zip_checkbox = wx.CheckBox(mainpanel, self._TO_ZIP_CHECKBOX_ID, u"")
@@ -119,7 +119,7 @@ class DropFile(wx.FileDropTarget):
     self._files_to_keep = set()
         
   def OnDropFiles(self, x, y, files):
-    do_transcript, do_srt, srt_choice, do_ssa, do_zip, keep_zip = self._parent.getGenerateFiles()
+    do_transcript, do_srt, srt_choice, do_ass, do_zip, keep_zip = self._parent.getGenerateFiles()
     
     for sub in files:
       srt = SubtitleFile(sub)
@@ -130,8 +130,8 @@ class DropFile(wx.FileDropTarget):
       self._generated_files.add(srt.File)
       self._files_to_keep.add(srt.File)
       
-      if do_ssa:
-        srt.toSSA()
+      if do_ass:
+        srt.toASS()
         self._generated_files.add(u"%s/%s.ass" % (srt.SubDir, srt.SubName))
         #self._generated_files.add(u"%s/%s.ssa" % (srt.SubDir, srt.SubName))
       

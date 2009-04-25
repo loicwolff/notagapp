@@ -72,7 +72,7 @@ def toNoTagAppPattern(entry):
   return entry
 
 def toSRTPattern(entry, keep_tag=True):
-  """change the SSA tags into SRT tags"""
+  """change the ASS tags into SRT tags"""
   to_srt_tagged_pattern = { # italics tags
                             NTA_ITA_OPEN:SRT_ITA_OPEN,
                             NTA_ITA_CLOSE:SRT_ITA_CLOSE,     
@@ -99,8 +99,8 @@ def toSRTPattern(entry, keep_tag=True):
     entry = entry.replace(key, value)
   return entry
 
-def toSSAPattern(entry):
-  """change the SRT tags into SSA tags"""
+def toASSPattern(entry):
+  """change the SRT tags into ASS tags"""
   to_ass_pattern = { # italics tags
                      NTA_ITA_OPEN:ASS_ITA_OPEN ,
                      NTA_ITA_CLOSE:ASS_ITA_CLOSE,
@@ -122,9 +122,9 @@ def parseSRTTiming(timing):
   """
   return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
 
-def parseSSATiming(timing):
+def parseASSTiming(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
-  of the timing matched from an SSA line
+  of the timing matched from an ASS line
   """
   return re.match(r"Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
                   r"(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
@@ -178,7 +178,7 @@ class SubtitleFile(object):
             self._subs.append(sub_entry)
             sub_entry = None
   
-  def _parseSSA(self):
+  def _parseASS(self):
     """"""
     ass_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," +
                                   r"(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
@@ -248,9 +248,9 @@ class SubtitleFile(object):
             self._subs.append(sub_entry)
             sub_entry = None
   
-  def toSSA(self):
+  def toASS(self):
     """"""
-    with open("%s/%s.%s" % (self._sub_dir, self._sub_name, SSA), "w") as output_file:
+    with open("%s/%s.%s" % (self._sub_dir, self._sub_name, ASS), "w") as output_file:
       header = """[Script Info]
 Title: <untitled>
 Original Script: <unknown>
@@ -272,11 +272,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
       
       for sub in self._subs:
         output_file.write("Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" % (
-                            sub.StartTime.toSSA(),
-                            sub.EndTime.toSSA(),
+                            sub.StartTime.toASS(),
+                            sub.EndTime.toASS(),
                             "" if sub.Position is None else r"{\pos(%s,%s)}" % (sub.Position),
                             "" if sub.Fade is None else r"{\fad(%s,%s)}" % (sub.Fade),
-                            toSSAPattern("\N".join(sub.Lines))))
+                            toASSPattern("\N".join(sub.Lines))))
   
   def toTranscript(self):
     """write the transcript of the subtitle"""
@@ -341,7 +341,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     if filename[-4:] == u".srt":
       self._type = SRT_FILE
     elif filename[-4:] == u".ass":# or file[-4:] == u".ssa":
-      self._type = SSA_FILE
+      self._type = ASS_FILE
     elif filename[-4:] == ".txt":
       self._type = WEIRD_FILE
     else:
@@ -375,7 +375,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     if self._type == u".srt":
       self._parseSRT()
     elif self._type == u".ass":# or u".ssa":
-      self._parseSSA()
+      self._parseASS()
     elif self._type == u".txt":
       self._parseWeird()
   
@@ -476,8 +476,8 @@ class Timing(object):
             Timing(timings[4], timings[5], timings[6], timings[7]))
   
   @staticmethod
-  def parseSSA(timing):
-    timings = parseSSATiming(timing)
+  def parseASS(timing):
+    timings = parseASSTiming(timing)
     return (Timing(timings[0], timings[1], timings[2], timings[3]),
             Timing(timings[4], timings[5], timings[6], timings[7]))
   
@@ -507,7 +507,7 @@ class Timing(object):
     self._hour = int(hour)
     self._type = type
   
-  def toSSA(self):
+  def toASS(self):
     return "%d:%.2d:%.2d.%.2d" % (
           self._hour,
           self._min,
@@ -602,7 +602,7 @@ if __name__ == "__main__":
     s = SubtitleFile()
     s.File = "%s/roe.srt" % (SUBS_DIR)
     
-    s.toSSA()
+    s.toASS()
     #s.toTranscript()
     
     print(s.stats())

@@ -19,19 +19,21 @@ class NoTagApp(wx.App):
   def OnActivate(self, event):
     if event.GetActive():
       self.BringWindowToFront()
-    event.Skip()
+    else:
+      event.Skip()
     
   def OpenFileMessage(self, filename):
-    srt = SubtitleFile(filename)
-    srt.toAss()
-    srt.toTranscript()
-    srt.removeTag()
+    pass #TODO: fixme
+    #srt = SubtitleFile(filename)
+    #srt.toASS()
+    #srt.toTranscript()
+    #srt.removeTag()
 
   def MacOpenFile(self, filename):
     """Called for files droped on dock icon, or opened via finders context menu"""
     print filename
     print "%s dropped on app" % (filename)
-    self.OpenFileMessage(filename)
+    #self.OpenFileMessage(filename)
         
   def MacReopenApp(self):
     """Called when the doc icon is clicked, and ???"""

@@ -114,15 +114,19 @@ class DropFile(wx.FileDropTarget):
   def __init__(self, parent):
     wx.FileDropTarget.__init__(self)
     self._parent = parent
+    self._archive = ""
     self._generated_files = set()
     self._files_to_keep = set()
         
   def OnDropFiles(self, x, y, files):
     do_transcript, do_srt, srt_choice, do_ssa, do_zip, keep_zip = self._parent.getGenerateFiles()
-
-    srt = SubtitleFile()
-    for file in files:
-      srt.File = file
+    
+    for sub in files:
+      srt = SubtitleFile(sub)
+      
+      if self._archive != "":
+        self._archive = "%s/%s.zip" % (srt.SubDir, srt.SubName)
+      
       self._generated_files.add(srt.File)
       self._files_to_keep.add(srt.File)
       
@@ -150,10 +154,11 @@ class DropFile(wx.FileDropTarget):
       print("%s subtitle(s) and %s line(s) processed\ntoo long lines:\n%s" % (srt.stats()))
       
     if do_zip:
-      zip_file = zipfile.ZipFile(u"%s/%s.zip" % (srt.SubDir, srt.SubName), "w", zipfile.ZIP_DEFLATED)
+      zip_file = zipfile.ZipFile(self._archive, "w", zipfile.ZIP_DEFLATED)
       for gen in self._generated_files:
         if os.path.exists(gen):
           zip_file.write(str(gen), str(os.path.basename(gen)))
+          print(gen)
       zip_file.close()  
         
       if not keep_zip:

@@ -4,16 +4,19 @@
 from __future__ import with_statement
 import re
 import os
+import codecs
+
+import chardet
 
 import k # constants
 
-__author__ = "Loïc Wolff <loicwolff (at) gmail.com"
+__author__ = u"Loïc Wolff <loicwolff (at) gmail.com"
 
 def remove_exotic_char(entry):
   """remove any exotic character from the text to make it more compatible"""
-  no_tag_pattern = { "œ":"oe", "Œ":"Oe", "Æ":"Ae", "æ":"ae" }
+  no_tag_pattern = { u"œ":u"oe", u"Œ":u"Oe", u"Æ":u"Ae", u"æ":u"ae" }
   for key, value in no_tag_pattern.items():
-    entry = re.sub(key, value, entry)
+    entry = entry.replace(key, value)
   return entry
 
 def remove_tag(entry, alltag=False):
@@ -57,8 +60,7 @@ def to_srt_pattern(entry, keep_tag=True):
                             k.NTA_BOLD_CLOSE:k.SRT_BOLD_CLOSE,   
                             # underlined tags                
                             k.NTA_UNDER_OPEN:k.SRT_UNDER_OPEN,   
-                            k.NTA_UNDER_CLOSE:k.SRT_UNDER_CLOSE  
-  }
+                            k.NTA_UNDER_CLOSE:k.SRT_UNDER_CLOSE }
                      
   to_srt_pattern = { # italics tags
                      k.NTA_ITA_OPEN:k.SRT_ITA_OPEN,
@@ -68,8 +70,7 @@ def to_srt_pattern(entry, keep_tag=True):
                      k.NTA_BOLD_CLOSE:"",
                      # underlined tags
                      k.NTA_UNDER_OPEN:"",
-                     k.NTA_UNDER_CLOSE:""
-  }
+                     k.NTA_UNDER_CLOSE:"" }
   
   for key, value in to_srt_tagged_pattern.items() if keep_tag else to_srt_pattern.items():
     entry = entry.replace(key, value)
@@ -78,15 +79,14 @@ def to_srt_pattern(entry, keep_tag=True):
 def to_ass_pattern(entry):
   """change the SRT tags into ASS tags"""
   to_ass_pattern = { # italics tags
-                     k.NTA_ITA_OPEN:k.ASS_ITA_OPEN ,
+                     k.NTA_ITA_OPEN:k.ASS_ITA_OPEN,
                      k.NTA_ITA_CLOSE:k.ASS_ITA_CLOSE,
                      # bold tags
-                     k.NTA_BOLD_OPEN:k.ASS_BOLD_OPEN ,
+                     k.NTA_BOLD_OPEN:k.ASS_BOLD_OPEN,
                      k.NTA_BOLD_CLOSE:k.ASS_BOLD_CLOSE,
                      # underlined tags
-                     k.NTA_UNDER_OPEN:k.ASS_UNDER_OPEN ,
-                     k.NTA_UNDER_CLOSE:k.ASS_UNDER_CLOSE
-                     }
+                     k.NTA_UNDER_OPEN:k.ASS_UNDER_OPEN,
+                     k.NTA_UNDER_CLOSE:k.ASS_UNDER_CLOSE }
   
   for key, value in to_ass_pattern.items():
     entry = entry.replace(key, value)
@@ -126,12 +126,12 @@ class SubtitleFile(object):
   
   def _parseSRT(self):
     """"""
-    with open(self._file, "r") as sub:
+    with codecs.open(self._file, "r", self._detectEncoding()) as sub:
       sub_entry = None
       index = 0
       
       for line in sub:
-        line = re.sub("(\r\n|\n)", "", line).strip()
+        line = re.sub(r"(\r\n|\n)", "", line).strip()
         if re.match(r"^\d+$", line): # index
           sub_entry = Subtitle()
         elif re.match(r"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", line): # timing
@@ -160,10 +160,10 @@ class SubtitleFile(object):
     """"""
     ass_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," +
                                   r"(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
-    with open(self._file, "r") as sub:
+    with codecs.open(self._file, u"r", self._detectEncoding()) as sub:
       index = 0
       for line in sub:
-        line = line.strip("\r\n").strip("\n")
+        line = line.strip(r"\r\n").strip(r"\n")
         if re.search(ass_line_pattern, line):
           sub_entry = Subtitle()
           index += 1
@@ -186,15 +186,22 @@ class SubtitleFile(object):
           sub_entry.StartTime = Timing(start_hour, start_min, start_sec, start_millis)
           sub_entry.EndTime = Timing(end_hour, end_min, end_sec, end_millis)
           
-          for item in text.split("\N"):
+          for item in text.split(r"\N"):
             sub_entry.addLine(item)
           
           self._subs.append(sub_entry)
           
+  def _detectEncoding(self):
+    """return the encoding of the file"""
+    with open(self._file, 'r') as f:
+      enc = chardet.detect("".join(f.readlines()))
+    
+    print enc
+    return enc['encoding']
   
   def _parseWeird(self):
     """"""
-    with open(self._file, "r") as sub:
+    with open(self._file, "r", ) as sub:
       sub_entry = None
       index = 0
       
@@ -228,8 +235,8 @@ class SubtitleFile(object):
   
   def toASS(self):
     """"""
-    with open("%s/%s.ass" % (self._sub_dir, self._sub_name), "w") as output_file:
-      header = """[Script Info]
+    with codecs.open(u"%s/%s.ass" % (self._sub_dir, self._sub_name), "w", "utf8") as output_file:
+      header = u"""[Script Info]
 Title: <untitled>
 Original Script: <unknown>
 ScriptType: v4.00+
@@ -249,18 +256,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
       output_file.write(header)
       
       for sub in self._subs:
-        output_file.write("Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" % (
+        output_file.write(u"Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" % (
                             sub.StartTime.toASS(),
                             sub.EndTime.toASS(),
-                            "" if sub.Position is None else r"{\pos(%s,%s)}" % (sub.Position),
-                            "" if sub.Fade is None else r"{\fad(%s,%s)}" % (sub.Fade),
-                            to_ass_pattern("\N".join(sub.Lines))))
+                            u"" if sub.Position is None else u"{\pos(%s,%s)}" % (sub.Position),
+                            u"" if sub.Fade is None else u"{\fad(%s,%s)}" % (sub.Fade),
+                            to_ass_pattern(r"\N".join(sub.Lines))))
   
   def toTranscript(self):
     """write the transcript of the subtitle"""
 
     to_join = False
-    with open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w") as output_file:
+    with codecs.open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w", 'utf8') as output_file:
       for sub in self._subs:
         if to_join:
           transcript = transcript + " " + remove_tag("\n".join(sub.Lines), True)
@@ -284,14 +291,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     if keep_tag is False, the position and format tags, except the italics, are removed
     """
     
-    with open("%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w") as output_file:
+    with codecs.open(u"%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w", 'ISO-8859-2') as output_file:
       for sub in self._subs:
-        output_file.write("%d\n%s --> %s\n%s%s%s\n\n" % (
+        output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
           sub.Index,
           sub.StartTime.toSRT(),
           sub.EndTime.toSRT(),
-          "" if sub.Position is None or not keep_tag else "{\pos(%s,%s)}" % (sub.Position),
-          "" if sub.Fade is None or not keep_tag else "{\fad(%s,%s)}" % (sub.Fade),
+          "" if sub.Position is None or not keep_tag else u"{\pos(%s,%s)}" % (sub.Position),
+          "" if sub.Fade is None or not keep_tag else u"{\fad(%s,%s)}" % (sub.Fade),
           to_srt_pattern("\n".join(sub.Lines), keep_tag)))
   
   def stats(self):
@@ -311,9 +318,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
       for line in sub.Lines:
         index += 1
         if len(remove_tag(line, True)) > 40:
-          too_long_lines.append("sub.index: %s / sub.line: %s / sub.length: %s\n" % (sub.Index, index, len(line)))
+          too_long_lines.append({ 'sub.index':sub.Index, 'sub.line':index, 'sub.length':len(line) })
 
-    return len(self._subs), num_line, too_long_lines
+    return { 'num_subs':len(self._subs), 'num_line':num_line, 'too_long_lines':too_long_lines }
   
   # getters
   def _getFile(self):
@@ -333,6 +340,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   
   # setters
   def _setFile(self, filename):
+    if not os.path.exists(filename):
+      raise IOError('File does not exist')
     self._file = filename
     self._sub_name, self._type = os.path.splitext(filename)
     self._sub_name = os.path.basename(self._sub_name)
@@ -376,12 +385,12 @@ class Subtitle(object):
     self._lines.append(line)
   
   def __str__(self):
-    return "from %s to %s%s%s\nlines:\n%s" % (
+    return u"from %s to %s%s%s\nlines:\n%s" % (
                 self._start_time,
                 self._end_time,
-                "" if self._pos is None else "\npos: %s, %s" % (self._pos),
-                "" if self._fade is None else "\nfade: %s, %s" % (self._fade),
-                "\n".join(self._lines)
+                "" if self._pos is None else u"\npos: %s, %s" % (self._pos),
+                "" if self._fade is None else u"\nfade: %s, %s" % (self._fade),
+                u"\n".join(self._lines)
                 )
   
   # getters
@@ -532,42 +541,39 @@ class Timing(object):
   Time = property(_getTime)
 
 def test_lib():
-  ass_sub = to_nta_pattern("{\i1}italic{\i0}")
-  srt_sub = to_nta_pattern("<i>italic</i>")
-  tag = remove_tag("{\font}<i>{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>", True)
-  exotic = remove_exotic_char("œŒÆæ")
+  ass_sub = to_nta_pattern(u"{\i1}italic{\i0}")
+  srt_sub = to_nta_pattern(u"<i>italic</i>")
+  tag = remove_tag(u"{\font}<i>{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>", True)
+  exotic = remove_exotic_char(u"œŒÆæ")
   
-  assert ass_sub == "[i]italic[/i]", ass_sub
-  assert srt_sub == "[i]italic[/i]", srt_sub
-  assert tag == "", tag
-  assert exotic == "oeOeAeae", exotic
+  assert ass_sub == u"[i]italic[/i]", ass_sub
+  assert srt_sub == u"[i]italic[/i]", srt_sub
+  assert tag == u"", tag
+  assert exotic == u"oeOeAeae", exotic
 
 if __name__ == "__main__":
+
   SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
+
+  if False:
+    w = codecs.open('/users/dex/desktop/2.txt', 'w', 'utf8')
+    with codecs.open('/users/dex/desktop/24.srt', 'r', 'ISO-8859-2') as file:
+      for line in file:
+        print remove_exotic_char(line.strip('\r\n'))
+        w.write(line.strip('\r\n') + '\n')
+    w.close()
   
   if False:
     s = SubtitleFile()
-    s.File = "/Users/dex/Desktop/My.Name.Is.Earl.423.lol.VF.srt"
-    
-    for sub in s.Subs:
-      print remove_tag("".join(sub.Lines), True)
-  
-  if False:
-    s = SubtitleFile()
-    s.File = "%s/dollhouse.ass" % (SUBS_DIR)
+    s.File = "%s/24.ass" % (SUBS_DIR)
     
     s.toTranscript()
-    #s.toSRT(keep_tag=True)
-    #s.toSRT(keep_tag=False)
-    
-    print(s.stats())
-    
-    #for sub in s.Subs:
-    #  print(str(sub))
+    s.toSRT(keep_tag=True)
+    s.toSRT(keep_tag=False)
   
-  if False:
+  if True:
     s = SubtitleFile()
-    s.File = "%s/roe.srt" % (SUBS_DIR)
+    s.File = "%s/24.srt" % (SUBS_DIR)
     
     s.toASS()
     #s.toTranscript()
@@ -577,6 +583,6 @@ if __name__ == "__main__":
     #for sub in s.Subs:
     #  print(str(sub))
   
-  if True:
+  if False:
     test_lib()
     

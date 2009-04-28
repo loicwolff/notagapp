@@ -148,9 +148,7 @@ class DropFile(wx.FileDropTarget):
           self._generated_files.add(u"%s/%s.NOTAG.srt" % (srt.SubDir, srt.SubName))
           
       if do_transcript:
-        srt.toTranscript()
-      
-      print("%s subtitle(s) and %s line(s) processed\ntoo long lines:\n%s" % (srt.stats()))
+        srt.toTranscript() 
       
     if do_zip:
       print "archive", self._archive

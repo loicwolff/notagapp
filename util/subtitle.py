@@ -196,8 +196,11 @@ class SubtitleFile(object):
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
     
-    print enc
-    return enc['encoding']
+    # windows-1255 is wrongfully detected when it's actually ISO-8859-2 
+    if enc['encoding'] == 'windows-1255':
+      return 'ISO-8859-2'
+    else:
+      return enc['encoding']
   
   def _parseWeird(self):
     """"""
@@ -341,7 +344,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   # setters
   def _setFile(self, filename):
     if not os.path.exists(filename):
-      raise IOError('File does not exist')
+      raise IOError(u'File does not exist')
     self._file = filename
     self._sub_name, self._type = os.path.splitext(filename)
     self._sub_name = os.path.basename(self._sub_name)
@@ -381,9 +384,7 @@ class Subtitle(object):
     self._pos = None
     self._fade = None
     
-  def addLine(self, line):
-    self._lines.append(line)
-  
+
   def __str__(self):
     return u"from %s to %s%s%s\nlines:\n%s" % (
                 self._start_time,
@@ -392,6 +393,8 @@ class Subtitle(object):
                 "" if self._fade is None else u"\nfade: %s, %s" % (self._fade),
                 u"\n".join(self._lines)
                 )
+  def addLine(self, line):
+     self._lines.append(line)
   
   # getters
   def _getIndex(self):

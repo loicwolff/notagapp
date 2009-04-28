@@ -195,10 +195,12 @@ class SubtitleFile(object):
     """return the encoding of the file"""
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
-    
-    # windows-1255 is wrongfully detected when it's actually ISO-8859-2 
-    if enc['encoding'] == 'windows-1255':
-      return 'ISO-8859-2'
+   
+    print enc['encoding']
+    # windows-1255 is wrongfully detected when it's actually ISO-8859-1
+    # same goes for ISO-8859-2
+    if enc['encoding'] == 'windows-1255' or enc['encoding'] == 'ISO-8859-2':
+      return 'ISO-8859-1'
     else:
       return enc['encoding']
   
@@ -250,12 +252,12 @@ Timer: 100.0
 WrapStyle: 0
 
 [v4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,20,&H00FFFFFF,&H00000000,&H00000000,&H00000000,
-0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic,  Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,20,&H00FFFFFF,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
 
 [Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"""
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
       output_file.write(header)
       
       for sub in self._subs:
@@ -294,7 +296,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     if keep_tag is False, the position and format tags, except the italics, are removed
     """
     
-    with codecs.open(u"%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w", 'ISO-8859-2') as output_file:
+    with codecs.open(u"%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w", 'ISO-8859-1') as output_file:
       for sub in self._subs:
         output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
           sub.Index,
@@ -560,7 +562,7 @@ if __name__ == "__main__":
 
   if False:
     w = codecs.open('/users/dex/desktop/2.txt', 'w', 'utf8')
-    with codecs.open('/users/dex/desktop/24.srt', 'r', 'ISO-8859-2') as file:
+    with codecs.open('/users/dex/desktop/24.srt', 'r', 'ISO-8859-1') as file:
       for line in file:
         print remove_exotic_char(line.strip('\r\n'))
         w.write(line.strip('\r\n') + '\n')

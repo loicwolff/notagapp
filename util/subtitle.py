@@ -557,37 +557,5 @@ def test_lib():
   assert exotic == u"oeOeAeae", exotic
 
 if __name__ == "__main__":
-
-  SUBS_DIR = "/Users/dex/Development/Python/NoTagApp/subs"
-
-  if False:
-    w = codecs.open('/users/dex/desktop/2.txt', 'w', 'utf8')
-    with codecs.open('/users/dex/desktop/24.srt', 'r', 'ISO-8859-1') as file:
-      for line in file:
-        print remove_exotic_char(line.strip('\r\n'))
-        w.write(line.strip('\r\n') + '\n')
-    w.close()
-  
-  if False:
-    s = SubtitleFile()
-    s.File = "%s/24.ass" % (SUBS_DIR)
-    
-    s.toTranscript()
-    s.toSRT(keep_tag=True)
-    s.toSRT(keep_tag=False)
-  
-  if True:
-    s = SubtitleFile()
-    s.File = "%s/24.srt" % (SUBS_DIR)
-    
-    s.toASS()
-    #s.toTranscript()
-    
-    print(s.stats())
-    
-    #for sub in s.Subs:
-    #  print(str(sub))
-  
-  if False:
-    test_lib()
+  test_lib()
     

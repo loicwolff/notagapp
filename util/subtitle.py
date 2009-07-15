@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+subtitle.py
+
+Created by Loïc Wolff on 2009-04-28.
+Copyright (c) 2009 loicwolff.eu. All rights reserved.
+"""
 
 from __future__ import with_statement
 import re
 import os
 import codecs
 
-import chardet
+import chardet # character detection lib
 
 import k # constants
 
@@ -52,6 +58,7 @@ def to_nta_pattern(entry):
 
 def to_srt_pattern(entry, keep_tag=True):
   """change the ASS tags into SRT tags"""
+  #entry = remove_exotic_char(entry)
   to_srt_tagged_pattern = { # italics tags
                             k.NTA_ITA_OPEN:k.SRT_ITA_OPEN,
                             k.NTA_ITA_CLOSE:k.SRT_ITA_CLOSE,     
@@ -111,6 +118,26 @@ def parse_weird_timing(timing):
 
 def srt_to_ass_color(srt_color):
   return ""
+  
+def build_ass_header(font="Arial", fontsize="20"):
+  """return a custom .ass header"""
+  return u"""[Script Info]
+Title: <untitled>
+Original Script: <unknown>
+ScriptType: v4.00+
+PlayResX: 384
+PlayResY: 288
+PlayDepth: 0
+Timer: 100.0
+WrapStyle: 0
+
+[v4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+""" % (font, fontsize)
 
 class SubtitleFile(object):
   """"""
@@ -180,7 +207,7 @@ class SubtitleFile(object):
           
           # cleaning up
           text = to_nta_pattern(text)
-          text = remove_exotic_char(text)
+          #text = remove_exotic_char(text)
           text = remove_tag(text)
           
           sub_entry.StartTime = Timing(start_hour, start_min, start_sec, start_millis)
@@ -241,23 +268,7 @@ class SubtitleFile(object):
   def toASS(self):
     """"""
     with codecs.open(u"%s/%s.ass" % (self._sub_dir, self._sub_name), "w", "utf8") as output_file:
-      header = u"""[Script Info]
-Title: <untitled>
-Original Script: <unknown>
-ScriptType: v4.00+
-PlayResX: 384
-PlayResY: 288
-PlayDepth: 0
-Timer: 100.0
-WrapStyle: 0
-
-[v4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic,  Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,20,&H00FFFFFF,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
-
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-"""
+      header = build_ass_header()
       output_file.write(header)
       
       for sub in self._subs:
@@ -296,7 +307,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     if keep_tag is False, the position and format tags, except the italics, are removed
     """
     
-    with codecs.open(u"%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w", 'ISO-8859-1') as output_file:
+    with codecs.open(u"%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w", 'ISO-8859-1') as output_file:  
+      #''
       for sub in self._subs:
         output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
           sub.Index,
@@ -355,7 +367,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     
     if self._type == u".srt":
       self._parseSRT()
-    elif self._type == u".ass":# or u".ssa":
+    elif self._type == u".ass":
       self._parseASS()
     elif self._type == u".txt":
       self._parseWeird()

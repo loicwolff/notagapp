@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import wx
-from gui.MainFrame import MainFrame
+from MainFrame import MainFrame
 from util.subtitle import SubtitleFile
 
 class NoTagApp(wx.App):
@@ -15,7 +15,7 @@ class NoTagApp(wx.App):
       self.GetTopWindow().Raise()
     except:
       pass
-        
+    
   def OnActivate(self, event):
     if event.GetActive():
       self.BringWindowToFront()
@@ -31,12 +31,13 @@ class NoTagApp(wx.App):
 
   def MacOpenFile(self, filename):
     """Called for files droped on dock icon, or opened via finders context menu"""
+    sub = SubtitleFile()
     print filename
     print "%s dropped on app" % (filename)
     #self.OpenFileMessage(filename)
         
   def MacReopenApp(self):
-    """Called when the doc icon is clicked, and ???"""
+    """Called when the doc icon is clicked"""
     self.BringWindowToFront()
 
   def MacNewFile(self):

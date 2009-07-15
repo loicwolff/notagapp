@@ -33,11 +33,12 @@ class MainFrame(wx.Frame):
   _zip_combo = None
   
   def __init__(self):
-    wx.Frame.__init__(self, None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(510, 300), 
+    super(MainFrame, self).__init__(None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(510, 300), 
                         wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.CAPTION | wx.STAY_ON_TOP | wx.SYSTEM_MENU)
-    
+                        
     wx.InitAllImageHandlers()
-    self.initControls()
+    self._initControls()
+    self._bindEvents()
     
     self._to_transcript_checkbox.SetFocus()
     self.SetMinSize(wx.Size(-1, 110))
@@ -46,7 +47,7 @@ class MainFrame(wx.Frame):
     self.Center()
     self.Show(True)
 
-  def initControls(self):
+  def _initControls(self):
     """create and initialize UI elements"""
     
     # Controls Initialization and showing of the form
@@ -88,6 +89,9 @@ class MainFrame(wx.Frame):
     self._to_srt_checkbox.SetValue(True)
     self._to_ass_checkbox.SetValue(True)
     self._to_zip_checkbox.SetValue(True)
+    
+    val_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    val_sizer
 
     main_sizer = wx.BoxSizer(wx.VERTICAL)
     main_sizer.Add(drop_sizer, 1, wx.EXPAND, 10)
@@ -101,18 +105,31 @@ class MainFrame(wx.Frame):
     drop_text_target = DropFile(self)
     drop_text.SetDropTarget(drop_text_target)
     
+  def _bindEvents(self):
+    """Bind events to methods"""
+    self.Bind(wx.EVT_CHOICE, self.OnSRTComboChange, id=self._SRT_COMBO_ID)
+    self.Bind(wx.EVT_CHOICE, self.OnZipComboChange, id=self._ZIP_COMBO_ID)
+    
   def getGenerateFiles(self):
     """Return a tuble of the checkboxes values"""
     return (self._to_transcript_checkbox.IsChecked(), 
             self._to_srt_checkbox.IsChecked(), self._srt_combo.GetCurrentSelection(),
             self._to_ass_checkbox.IsChecked(), 
             self._to_zip_checkbox.IsChecked(), self._zip_combo.GetCurrentSelection() == 0)
+  
+  def OnSRTComboChange(self, event):
+    """docstring for OnSRTCombo"""
+    self._to_srt_checkbox.SetValue(True)
+    
+  def OnZipComboChange(self, event):
+    """"""
+    self._to_zip_checkbox.SetValue(True)
 
 class DropFile(wx.FileDropTarget):
   """"""
   
   def __init__(self, parent):
-    wx.FileDropTarget.__init__(self)
+    super(DropFile, self).__init__()
     self._parent = parent
     self._archive = ""
     self._generated_files = set()
@@ -164,3 +181,14 @@ class DropFile(wx.FileDropTarget):
           if gen not in self._files_to_keep and os.path.exists(gen):
             os.remove(gen)
   
+def main():
+  class App(wx.App):
+    def OnInit(self):
+      frame = MainFrame()
+      return True
+  
+  app = App(False)
+  app.MainLoop()
+  
+if __name__ == '__main__':
+  main()

@@ -1,6 +1,8 @@
 #/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
 import wx
 from MainFrame import MainFrame
 from util.subtitle import SubtitleFile
@@ -48,7 +50,5 @@ class NoTagApp(wx.App):
     
   
 if __name__ == '__main__':
-  import sys
   app = NoTagApp(False)
   app.MainLoop()
-

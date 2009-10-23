@@ -16,7 +16,7 @@ import chardet # character detection lib
 
 import k # constants
 
-__author__ = u"Loïc Wolff <loicwolff (at) gmail.com"
+__author__ = u"Loïc Wolff <loicwolff (at) gmail.com>"
 
 def remove_exotic_char(entry):
   """remove any exotic character from the text to make it more compatible"""
@@ -267,7 +267,7 @@ class SubtitleFile(object):
   
   def toASS(self):
     """"""
-    with codecs.open(u"%s/%s.ass" % (self._sub_dir, self._sub_name), "w", "utf8") as output_file:
+    with codecs.open(u"%s/%s.ass" % (self._sub_dir, self._sub_name), "w", "ISO-8859-1") as output_file:
       header = build_ass_header()
       output_file.write(header)
       

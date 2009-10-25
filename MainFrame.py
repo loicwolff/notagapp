@@ -64,15 +64,11 @@ class MainFrame(wx.Frame):
     self._to_ass_checkbox = wx.CheckBox(mainpanel, self._TO_ASS_CHECKBOX_ID, u"To ASS")
     self._to_srt_checkbox = wx.CheckBox(mainpanel, self._TO_SRT_CHECKBOX_ID, u"")
     self._to_transcript_checkbox = wx.CheckBox(mainpanel, self._TO_TRANSCRIPT_CHECKBOX_ID, u"Transcript")
-    self._to_zip_checkbox = wx.CheckBox(mainpanel, self._TO_ZIP_CHECKBOX_ID, u"")
+    self._to_zip_checkbox = wx.CheckBox(mainpanel, self._TO_ZIP_CHECKBOX_ID, u"Zip it!")
     
     self._srt_combo = wx.Choice(mainpanel, self._SRT_COMBO_ID, wx.DefaultPosition, wx.Size(130, -1), 
                                 [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
     self._srt_combo.SetSelection(2)
-    
-    self._zip_combo = wx.Choice(mainpanel, self._ZIP_COMBO_ID, wx.DefaultPosition, wx.Size(105, -1),
-                                [u"zip&keep", u"zip&delete"])
-    self._zip_combo.SetSelection(0)
     
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
     cb_sizer.Add(self._to_transcript_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
@@ -83,7 +79,6 @@ class MainFrame(wx.Frame):
     cb_sizer.Add(self._to_ass_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_zip_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    cb_sizer.Add(self._zip_combo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     
     self._to_transcript_checkbox.SetValue(False)
     self._to_srt_checkbox.SetValue(True)
@@ -111,11 +106,11 @@ class MainFrame(wx.Frame):
     self.Bind(wx.EVT_CHOICE, self.OnZipComboChange, id=self._ZIP_COMBO_ID)
     
   def getGenerateFiles(self):
-    """Return a tuble of the checkboxes values"""
+    """Return a tuple of the checkboxes values"""
     return (self._to_transcript_checkbox.IsChecked(), 
             self._to_srt_checkbox.IsChecked(), self._srt_combo.GetCurrentSelection(),
             self._to_ass_checkbox.IsChecked(), 
-            self._to_zip_checkbox.IsChecked(), self._zip_combo.GetCurrentSelection() == 0)
+            self._to_zip_checkbox.IsChecked())
   
   def OnSRTComboChange(self, event):
     """docstring for OnSRTCombo"""
@@ -126,60 +121,55 @@ class MainFrame(wx.Frame):
     self._to_zip_checkbox.SetValue(True)
 
 class DropFile(wx.FileDropTarget):
-  """"""
+  """class managing when files are dropped onto the application"""
   
   def __init__(self, parent):
     super(DropFile, self).__init__()
     self._parent = parent
     self._archive = ""
     self._generated_files = set()
-    self._files_to_keep = set()
         
   def OnDropFiles(self, x, y, files):
-    do_transcript, do_srt, srt_choice, do_ass, do_zip, keep_zip = self._parent.getGenerateFiles()
-    
+    do_transcript, do_srt, srt_choice, do_ass, do_zip = self._parent.getGenerateFiles()
+
     for sub in files:
       srt = SubtitleFile(sub)
       
+      # creating folder
+      sub_dir = "%s/%s" % (srt.SubDir, srt.SubName)
+      print("subdir: " + sub_dir)
+      os.mkdir(sub_dir)
+
       if self._archive == "":
         self._archive = "%s/%s.zip" % (srt.SubDir, srt.SubName)
       
-      self._generated_files.add(srt.File)
-      self._files_to_keep.add(srt.File)
-      
       if do_ass:
-        srt.toASS()
-        self._generated_files.add(u"%s/%s.ass" % (srt.SubDir, srt.SubName))
+        srt.toASS(output_dir=sub_dir)
+        self._generated_files.add(u"%s/%s.ass" % (sub_dir, srt.SubName))
       
       if do_srt:
         if srt_choice == 0:
-          srt.toSRT(keep_tag=True)
-          self._generated_files.add(u"%s/%s.TAG.srt" % (srt.SubDir, srt.SubName))
+          srt.toSRT(keep_tag=True, output_dir=sub_dir)
+          self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
         elif srt_choice == 1:
-          srt.toSRT(keep_tag=False)
-          self._generated_files.add(u"%s/%s.NOTAG.srt" % (srt.SubDir, srt.SubName))
+          srt.toSRT(keep_tag=False, output_dir=sub_dir)
+          self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
         else:
-          srt.toSRT(keep_tag=True)
-          srt.toSRT(keep_tag=False)
-          self._generated_files.add(u"%s/%s.TAG.srt" % (srt.SubDir, srt.SubName))
-          self._generated_files.add(u"%s/%s.NOTAG.srt" % (srt.SubDir, srt.SubName))
+          srt.toSRT(keep_tag=True, output_dir=sub_dir)
+          srt.toSRT(keep_tag=False, output_dir=sub_dir)
+          self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
+          self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
           
       if do_transcript:
         srt.toTranscript() 
       
     if do_zip:
-      print "archive", self._archive
+      print("archive: " + self._archive)
       zip_file = zipfile.ZipFile(self._archive, "w", zipfile.ZIP_DEFLATED)
       for gen in self._generated_files:
         if os.path.exists(gen):
           zip_file.write(str(gen), str(os.path.basename(gen)))
-          print(gen)
       zip_file.close()  
-        
-      if not keep_zip:
-        for gen in self._generated_files:
-          if gen not in self._files_to_keep and os.path.exists(gen):
-            os.remove(gen)
   
 def main():
   class App(wx.App):
@@ -192,3 +182,4 @@ def main():
   
 if __name__ == '__main__':
   main()
+  

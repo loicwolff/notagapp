@@ -265,22 +265,82 @@ class SubtitleFile(object):
             self._subs.append(sub_entry)
             sub_entry = None
   
-  def toASS(self):
-    """"""
-    with codecs.open(u"%s/%s.ass" % (self._sub_dir, self._sub_name), "w", "ISO-8859-1") as output_file:
+  def toASS(self, output_file=None, output_dir=None):
+    """Write the ASS file. 
+    The .ass extension is automaticaly added
+    
+    @output_file: the name of the file. 
+      if null, the name of the sub is used.
+      -> default is None
+    @output_dir: the name of the directory to put the subs,
+      if empty, the current sub directory is used
+      -> default is None
+    """
+    
+    if output_dir is None:
+      output_dir = self._sub_dir
+    
+    if output_file is None:
+      output_file = self._sub_name
+    
+    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "ISO-8859-1") as ass_file:
       header = build_ass_header()
-      output_file.write(header)
+      ass_file.write(header)
       
       for sub in self._subs:
-        output_file.write(u"Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" % (
+        ass_file.write(u"Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" % (
                             sub.StartTime.toASS(),
                             sub.EndTime.toASS(),
                             u"" if sub.Position is None else u"{\pos(%s,%s)}" % (sub.Position),
                             u"" if sub.Fade is None else u"{\fad(%s,%s)}" % (sub.Fade),
                             to_ass_pattern(r"\N".join(sub.Lines))))
-  
-  def toTranscript(self):
-    """write the transcript of the subtitle"""
+
+
+  def toSRT(self, keep_tag=True, output_file=None, output_dir=None):
+    """Write the SRT file.
+    The TAG.srt or NOTAG.srt extensions are added automaticaly
+    @keep_tag: specify if you want to remove the tags (except for <i>italics</i>)
+      -> default is True
+    @output_file: the name of the file. 
+      if null, the name of the sub is used.
+      -> default is None
+    @output_dir: the name of the directory to put the subs,
+      if empty, the current sub directory is used
+      -> default is None
+    """
+    
+    if output_dir is None:
+      output_dir = self._sub_dir
+    
+    if output_file is None:
+      output_file = self._sub_name
+    
+    with codecs.open(u"%s/%s.%s.srt" % (
+                        output_dir, 
+                        output_file,
+                        "TAG" if keep_tag else "NOTAG"), 
+                        "w", 
+                        'ISO-8859-1') as output_file:  
+      
+      for sub in self._subs:
+        output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
+          sub.Index,
+          sub.StartTime.toSRT(),
+          sub.EndTime.toSRT(),
+          "" if sub.Position is None or not keep_tag else u"{\pos(%s,%s)}" % (sub.Position),
+          "" if sub.Fade is None or not keep_tag else u"{\fad(%s,%s)}" % (sub.Fade),
+          to_srt_pattern("\n".join(sub.Lines), keep_tag)))
+
+
+  def toTranscript(self, output_file=None, output_dir=None):
+    """write the transcript of the subtitle
+    @output_file: the name of the file. 
+      if null, the name of the sub is used.
+      -> default is None
+    @output_dir: the name of the directory to put the subs,
+      if empty, the current sub directory is used
+      -> default is None
+    """
 
     to_join = False
     with codecs.open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w", 'ISO-8859-1') as output_file:
@@ -300,24 +360,9 @@ class SubtitleFile(object):
           continue
         else:
           to_join = False
-        output_file.write(transcript + "\n")
-        
-  def toSRT(self, keep_tag):
-    """generate an SRT file
-    if keep_tag is False, the position and format tags, except the italics, are removed
-    """
-    
-    with codecs.open(u"%s/%s.%s.srt" % (self._sub_dir, self._sub_name, "TAG" if keep_tag else "NOTAG"), "w", 'ISO-8859-1') as output_file:  
-      #''
-      for sub in self._subs:
-        output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
-          sub.Index,
-          sub.StartTime.toSRT(),
-          sub.EndTime.toSRT(),
-          "" if sub.Position is None or not keep_tag else u"{\pos(%s,%s)}" % (sub.Position),
-          "" if sub.Fade is None or not keep_tag else u"{\fad(%s,%s)}" % (sub.Fade),
-          to_srt_pattern("\n".join(sub.Lines), keep_tag)))
+        output_file.write(transcript + "\n")  
   
+
   def stats(self):
     """return a tuple with:
     > the number of subs

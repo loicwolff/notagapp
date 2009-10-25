@@ -283,7 +283,7 @@ class SubtitleFile(object):
     """write the transcript of the subtitle"""
 
     to_join = False
-    with codecs.open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w", 'utf8') as output_file:
+    with codecs.open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w", 'ISO-8859-1') as output_file:
       for sub in self._subs:
         if to_join:
           transcript = transcript + " " + remove_tag("\n".join(sub.Lines), True)

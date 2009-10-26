@@ -164,8 +164,8 @@ class DropFile(wx.FileDropTarget):
           self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
           
       if do_transcript:
-        srt.toTranscript()
-        self._generated_files.add(u"%s/%s." % (srt.SubDir, srt.SubName))
+        srt.toTranscript(output_dir=sub_dir)
+        self._generated_files.add(u"%s/%s." % (sub_dir, srt.SubName))
       
     if do_zip:
       zip_file = zipfile.ZipFile(self._archive, "w", zipfile.ZIP_DEFLATED)

@@ -5,7 +5,7 @@ import sys
 
 import wx
 from MainFrame import MainFrame
-from util.subtitle import SubtitleFile
+from subtitle import SubtitleFile
 
 class NoTagApp(wx.App):
   def OnInit(self):

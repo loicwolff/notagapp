@@ -12,7 +12,7 @@ import re
 import os
 import codecs
 
-import chardet # character detection lib
+import util.chardet as chardet # character detection lib
 
 import k # constants
 

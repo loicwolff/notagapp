@@ -138,7 +138,10 @@ class DropFile(wx.FileDropTarget):
       # creating folder
       sub_dir = "%s/%s" % (srt.SubDir, srt.SubName)
       print("subdir: " + sub_dir)
-      os.mkdir(sub_dir)
+      try:
+        os.mkdir(sub_dir)
+      except OSError:
+        pass
 
       if self._archive == "":
         self._archive = "%s/%s.zip" % (srt.SubDir, srt.SubName)
@@ -161,10 +164,10 @@ class DropFile(wx.FileDropTarget):
           self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
           
       if do_transcript:
-        srt.toTranscript() 
+        srt.toTranscript()
+        self._generated_files.add(u"%s/%s." % (srt.SubDir, srt.SubName))
       
     if do_zip:
-      print("archive: " + self._archive)
       zip_file = zipfile.ZipFile(self._archive, "w", zipfile.ZIP_DEFLATED)
       for gen in self._generated_files:
         if os.path.exists(gen):

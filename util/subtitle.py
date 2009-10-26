@@ -334,6 +334,7 @@ class SubtitleFile(object):
 
   def toTranscript(self, output_file=None, output_dir=None):
     """write the transcript of the subtitle
+    the TRANSCRIPT.txt extension is added automaticaly
     @output_file: the name of the file. 
       if null, the name of the sub is used.
       -> default is None
@@ -341,9 +342,15 @@ class SubtitleFile(object):
       if empty, the current sub directory is used
       -> default is None
     """
+    
+    if output_file is None:
+      output_file = self._sub_name
+
+    if output_dir is None:
+      output_dir = self._sub_dir
 
     to_join = False
-    with codecs.open("%s/%s.TRANSCRIPT.txt" % (self._sub_dir, self._sub_name), "w", 'ISO-8859-1') as output_file:
+    with codecs.open("%s/%s.TRANSCRIPT.txt" % (output_dir, output_file), "w", 'ISO-8859-1') as transcript_file:
       for sub in self._subs:
         if to_join:
           transcript = transcript + " " + remove_tag("\n".join(sub.Lines), True)
@@ -360,7 +367,7 @@ class SubtitleFile(object):
           continue
         else:
           to_join = False
-        output_file.write(transcript + "\n")  
+        transcript_file.write(transcript + "\n")  
   
 
   def stats(self):

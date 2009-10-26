@@ -16,21 +16,15 @@ class MainFrame(wx.Frame):
   
   _MAIN_FRAME_ID = wx.NewId()
   _TO_ASS_CHECKBOX_ID = wx.NewId()
-  _TO_SRT_CHECKBOX_ID = wx.NewId()
+  _TO_SRT_TAG_CHECKBOX_ID = wx.NewId()
+  _TO_SRT_NOTAG_CHECKBOX_ID = wx.NewId()
   _TO_TRANSCRIPT_CHECKBOX_ID = wx.NewId()
   _TO_ZIP_CHECKBOX_ID = wx.NewId()
-  _ASS_COMBO_ID = wx.NewId()
-  _SRT_COMBO_ID = wx.NewId()
-  _ZIP_COMBO_ID = wx.NewId()
-  
+    
   _to_ass_checkbox = None
   _to_srt_checkbox = None
   _to_transcript_checkbox = None
   _to_zip_checkbox = None
-  
-  #_ass_combo = None
-  _srt_combo = None
-  _zip_combo = None
   
   def __init__(self):
     super(MainFrame, self).__init__(None, -1, u"NoTagApp", wx.DefaultPosition, wx.Size(510, 300), 
@@ -38,7 +32,6 @@ class MainFrame(wx.Frame):
                         
     wx.InitAllImageHandlers()
     self._initControls()
-    self._bindEvents()
     
     self._to_transcript_checkbox.SetFocus()
     self.SetMinSize(wx.Size(-1, 110))
@@ -61,33 +54,29 @@ class MainFrame(wx.Frame):
     drop_sizer = wx.StaticBoxSizer(static_box, wx.VERTICAL)
     drop_sizer.Add(drop_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     
+    self._to_srt_tag_checkbox = wx.CheckBox(mainpanel, self._TO_SRT_TAG_CHECKBOX_ID, u"Tag")
+    self._to_srt_notag_checkbox = wx.CheckBox(mainpanel, self._TO_SRT_NOTAG_CHECKBOX_ID, u"NoTag")
     self._to_ass_checkbox = wx.CheckBox(mainpanel, self._TO_ASS_CHECKBOX_ID, u"To ASS")
-    self._to_srt_checkbox = wx.CheckBox(mainpanel, self._TO_SRT_CHECKBOX_ID, u"")
     self._to_transcript_checkbox = wx.CheckBox(mainpanel, self._TO_TRANSCRIPT_CHECKBOX_ID, u"Transcript")
     self._to_zip_checkbox = wx.CheckBox(mainpanel, self._TO_ZIP_CHECKBOX_ID, u"Zip it!")
-    
-    self._srt_combo = wx.Choice(mainpanel, self._SRT_COMBO_ID, wx.DefaultPosition, wx.Size(130, -1), 
-                                [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
-    self._srt_combo.SetSelection(2)
     
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
     cb_sizer.Add(self._to_transcript_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     cb_sizer.AddSpacer(20)
-    cb_sizer.Add(self._to_srt_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    cb_sizer.Add(self._srt_combo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 10)
+    cb_sizer.Add(self._to_srt_tag_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
+    cb_sizer.AddSpacer(20)
+    cb_sizer.Add(self._to_srt_notag_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_ass_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_zip_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     
     self._to_transcript_checkbox.SetValue(False)
-    self._to_srt_checkbox.SetValue(True)
+    self._to_srt_tag_checkbox.SetValue(True)
+    self._to_srt_notag_checkbox.SetValue(True)
     self._to_ass_checkbox.SetValue(True)
     self._to_zip_checkbox.SetValue(True)
     
-    val_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    val_sizer
-
     main_sizer = wx.BoxSizer(wx.VERTICAL)
     main_sizer.Add(drop_sizer, 1, wx.EXPAND, 10)
     main_sizer.Add(cb_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
@@ -100,25 +89,14 @@ class MainFrame(wx.Frame):
     drop_text_target = DropFile(self)
     drop_text.SetDropTarget(drop_text_target)
     
-  def _bindEvents(self):
-    """Bind events to methods"""
-    self.Bind(wx.EVT_CHOICE, self.OnSRTComboChange, id=self._SRT_COMBO_ID)
-    self.Bind(wx.EVT_CHOICE, self.OnZipComboChange, id=self._ZIP_COMBO_ID)
-    
-  def getGenerateFiles(self):
+  def getFilesToBuild(self):
     """Return a tuple of the checkboxes values"""
     return (self._to_transcript_checkbox.IsChecked(), 
-            self._to_srt_checkbox.IsChecked(), self._srt_combo.GetCurrentSelection(),
+            self._to_srt_tag_checkbox.IsChecked(),
+            self._to_srt_notag_checkbox.IsChecked(),
             self._to_ass_checkbox.IsChecked(), 
             self._to_zip_checkbox.IsChecked())
-  
-  def OnSRTComboChange(self, event):
-    """docstring for OnSRTCombo"""
-    self._to_srt_checkbox.SetValue(True)
-    
-  def OnZipComboChange(self, event):
-    """"""
-    self._to_zip_checkbox.SetValue(True)
+
 
 class DropFile(wx.FileDropTarget):
   """class managing when files are dropped onto the application"""
@@ -128,19 +106,20 @@ class DropFile(wx.FileDropTarget):
     self._parent = parent
     self._archive = ""
     self._generated_files = set()
-        
+      
+  
   def OnDropFiles(self, x, y, files):
-    do_transcript, do_srt, srt_choice, do_ass, do_zip = self._parent.getGenerateFiles()
-
+    do_transcript, do_srt_tag, do_srt_notag, do_ass, do_zip = self._parent.getFilesToBuild()
+    
     for sub in files:
       srt = SubtitleFile(sub)
       
       # creating folder
-      sub_dir = "%s/%s" % (srt.SubDir, srt.SubName)
-      print("subdir: " + sub_dir)
       try:
+        sub_dir = "%s/%s" % (srt.SubDir, srt.SubName)
         os.mkdir(sub_dir)
       except OSError:
+        #TODO: print error to user
         pass
 
       if self._archive == "":
@@ -150,18 +129,13 @@ class DropFile(wx.FileDropTarget):
         srt.toASS(output_dir=sub_dir)
         self._generated_files.add(u"%s/%s.ass" % (sub_dir, srt.SubName))
       
-      if do_srt:
-        if srt_choice == 0:
-          srt.toSRT(keep_tag=True, output_dir=sub_dir)
-          self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
-        elif srt_choice == 1:
-          srt.toSRT(keep_tag=False, output_dir=sub_dir)
-          self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
-        else:
-          srt.toSRT(keep_tag=True, output_dir=sub_dir)
-          srt.toSRT(keep_tag=False, output_dir=sub_dir)
-          self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
-          self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
+      if do_srt_tag:
+        srt.toSRT(keep_tag=True, output_dir=sub_dir)
+        self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
+      
+      if do_srt_notag:
+        srt.toSRT(keep_tag=False, output_dir=sub_dir)
+        self._generated_files.add(u"%s/%s.NOTAG.srt" % (sub_dir, srt.SubName))
           
       if do_transcript:
         srt.toTranscript(output_dir=sub_dir)

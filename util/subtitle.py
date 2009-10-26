@@ -553,12 +553,14 @@ class Timing(object):
     self._type = type
   
   def toASS(self):
-    return "%d:%.2d:%.2d.%.2d" % (
+    return "%d:%.2d:%.2d.%s" % (
           self._hour,
           self._min,
           self._sec,
-          int(str(self._millis)[0:2]))
-  
+          str(self._millis)[0:2]
+    )
+    
+    
   def toSRT(self):
     return "%.2d:%.2d:%.2d,%.3d" % (
           self._hour,

@@ -9,7 +9,7 @@ from setuptools import setup
 
 APP = ['NoTagApp.py']
 DATA_FILES = []
-OPTIONS = {'argv_emulation': True, 
+OPTIONS = {'argv_emulation': True,
     'iconfile': 'resource/NoTagApp.icns',
     }
 

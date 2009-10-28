@@ -31,7 +31,8 @@ def remove_tag(entry, alltag=False):
   """remove SRT and ASS tags
   if alltag, NoTagApp specials tag are removed too
   """
-  tag_pattern = r"{.*?}|</?font.*?>|</?.*?>%s" % (r"|\[/?.?\]" if alltag else "")
+  tag_pattern = r"{.*?}|</?font.*?>|</?.*?>%s" % (r"|\[/?.?\]"
+                  if alltag else "")
 
   return re.sub(tag_pattern, "", entry)
 
@@ -83,7 +84,8 @@ def to_srt_pattern(entry, keep_tag=True):
                      k.NTA_UNDER_OPEN: "",
                      k.NTA_UNDER_CLOSE: ""}
 
-  for key, value in to_srt_tagged_pattern.items() if keep_tag else to_srt_pattern.items():
+  for key, value in to_srt_tagged_pattern.items() if keep_tag \
+                    else to_srt_pattern.items():
     entry = entry.replace(key, value)
   return entry
 
@@ -142,7 +144,8 @@ Timer: 100.0
 WrapStyle: 0
 
 [v4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, \
+ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
 
 [Events]
@@ -299,17 +302,18 @@ class SubtitleFile(object):
       ass_file.write(header)
 
       for sub in self._subs:
-        ass_file.write(u"Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" % (
-                            sub.StartTime.toASS(),
-                            sub.EndTime.toASS(),
-                            u"" if sub.Position is None else u"{\pos(%s,%s)}" % (sub.Position),
-                            u"" if sub.Fade is None else u"{\fad(%s,%s)}" % (sub.Fade),
-                            to_ass_pattern(r"\N".join(sub.Lines))))
+        ass_file.write(u"Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" %
+                       (sub.StartTime.toASS(),
+                        sub.EndTime.toASS(),
+                        u"" if sub.Position is None else u"{\pos(%s,%s)}" % (sub.Position),
+                        u"" if sub.Fade is None else u"{\fad(%s,%s)}" % (sub.Fade),
+                        to_ass_pattern(r"\N".join(sub.Lines))))
 
   def toSRT(self, keep_tag=True, output_file=None, output_dir=None):
     """Write the SRT file.
     The TAG.srt or NOTAG.srt extensions are added automaticaly
-    @keep_tag: specify if you want to remove the tags (except for <i>italics</i>)
+    @keep_tag: specify if you want to remove the tags
+    (except for <i>italics</i>)
       -> default is True
     @output_file: the name of the file.
       if null, the name of the sub is used.

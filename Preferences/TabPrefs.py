@@ -30,17 +30,17 @@ class GeneralPref(wx.Panel):
     self._to_zip_checkbox = wx.CheckBox(self, wx.ID_ANY, u"")
 
     self._srt_combo = wx.Choice(self,
-                               wx.ID_ANY,
-                               wx.DefaultPosition,
-                               wx.Size(130, -1),
-                               [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
+                                wx.ID_ANY,
+                                wx.DefaultPosition,
+                                wx.Size(130, -1),
+                                [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
     self._srt_combo.SetSelection(2)
 
     self._zip_combo = wx.Choice(self,
-                               wx.ID_ANY,
-                               wx.DefaultPosition,
-                               wx.Size(105, -1),
-                               [u"zip&keep", u"zip&delete"])
+                                wx.ID_ANY,
+                                wx.DefaultPosition,
+                                wx.Size(105, -1),
+                                [u"zip&keep", u"zip&delete"])
     self._zip_combo.SetSelection(0)
 
     self._to_transcript_checkbox.SetValue(False)
@@ -79,19 +79,19 @@ class AssPref(wx.Panel):
     self.fontSizer.AddSpacer(5)
     self.fontSizer.Add(wx.StaticText(self, wx.ID_ANY, u"Font: "))
     self.fontChooser = wx.Choice(self,
-                                wx.ID_ANY,
-                                wx.DefaultPosition,
-                                wx.DefaultSize,
-                                [u"Arial", u"Comic Sans MS", u"Verdana"])
+                                 wx.ID_ANY,
+                                 wx.DefaultPosition,
+                                 wx.DefaultSize,
+                                 [u"Arial", u"Comic Sans MS", u"Verdana"])
     self.fontSizer.Add(self.fontChooser)
 
     self.fontSizer.AddSpacer(20)
     self.fontSizer.Add(wx.StaticText(self, wx.ID_ANY, u"Font Size: "))
     self.fontSizeChooser = wx.TextCtrl(self,
-                                      wx.ID_ANY,
-                                      wx.EmptyString,
-                                      wx.DefaultPosition,
-                                      wx.Size(30, -1))
+                                       wx.ID_ANY,
+                                       wx.EmptyString,
+                                       wx.DefaultPosition,
+                                       wx.Size(30, -1))
 
     self.fontSizer.Add(self.fontSizeChooser)
 

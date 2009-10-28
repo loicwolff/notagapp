@@ -35,11 +35,11 @@ class MainFrame(wx.Frame):
 
   def __init__(self):
     super(MainFrame, self).__init__(None, -1, u"NoTagApp",
-                                   wx.DefaultPosition,
-                                   wx.Size(510, 300),
-                                   wx.CLOSE_BOX | wx.MINIMIZE_BOX |
-                                   wx.CAPTION | wx.STAY_ON_TOP |
-                                   wx.SYSTEM_MENU)
+                                    wx.DefaultPosition,
+                                    wx.Size(510, 300),
+                                    wx.CLOSE_BOX | wx.MINIMIZE_BOX |
+                                    wx.CAPTION | wx.STAY_ON_TOP |
+                                    wx.SYSTEM_MENU)
 
     wx.InitAllImageHandlers()
     self._initControls()
@@ -61,9 +61,9 @@ class MainFrame(wx.Frame):
     drop_text = wx.StaticText(mainpanel, wx.ID_ANY, u"Drop file(s) here")
     drop_text.SetWindowStyle(wx.CENTRE)
     drop_text.SetFont(wx.Font(20,
-                             wx.FONTFAMILY_DEFAULT,
-                             wx.FONTSTYLE_NORMAL,
-                             wx.FONTWEIGHT_BOLD))
+                              wx.FONTFAMILY_DEFAULT,
+                              wx.FONTSTYLE_NORMAL,
+                              wx.FONTWEIGHT_BOLD))
 
     static_box = wx.StaticBox(mainpanel)
     drop_sizer = wx.StaticBoxSizer(static_box, wx.VERTICAL)
@@ -73,48 +73,48 @@ class MainFrame(wx.Frame):
                   20)
 
     self._to_ass_checkbox = wx.CheckBox(mainpanel,
-                                       self._TO_ASS_CHECKBOX_ID,
-                                       u"To ASS")
+                                        self._TO_ASS_CHECKBOX_ID,
+                                        u"To ASS")
     self._to_srt_checkbox = wx.CheckBox(mainpanel,
-                                       self._TO_SRT_CHECKBOX_ID,
-                                       u"")
+                                        self._TO_SRT_CHECKBOX_ID,
+                                        u"")
     self._to_transcript_checkbox = wx.CheckBox(mainpanel,
-                                              self._TO_TRANSCRIPT_CHECKBOX_ID,
-                                              u"Transcript")
+                                               self._TO_TRANSCRIPT_CHECKBOX_ID,
+                                               u"Transcript")
     self._to_zip_checkbox = wx.CheckBox(mainpanel,
-                                       self._TO_ZIP_CHECKBOX_ID,
-                                       u"Zip it!")
+                                        self._TO_ZIP_CHECKBOX_ID,
+                                        u"Zip it!")
     self._srt_combo = wx.Choice(mainpanel,
-                               self._SRT_COMBO_ID,
-                               wx.DefaultPosition,
-                               wx.Size(130, -1),
-                               [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
+                                self._SRT_COMBO_ID,
+                                wx.DefaultPosition,
+                                wx.Size(130, -1),
+                                [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
     self._srt_combo.SetSelection(2)
 
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
     cb_sizer.Add(self._to_transcript_checkbox,
-                0,
-                wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+                 0,
+                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
                 20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_srt_checkbox,
-                0,
-                wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-                20)
-    cb_sizer.Add(self._srt_combo,
-                0,
-                wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-                10)
-    cb_sizer.AddSpacer(20)
-    cb_sizer.Add(self._to_ass_checkbox,
                  0,
                  wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
                  20)
+    cb_sizer.Add(self._srt_combo,
+                 0,
+                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+                 10)
+    cb_sizer.AddSpacer(20)
+    cb_sizer.Add(self._to_ass_checkbox,
+                  0,
+                  wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+                  20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_zip_checkbox,
-                0,
-                wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-                20)
+                 0,
+                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+                 20)
 
     self._to_transcript_checkbox.SetValue(False)
     self._to_srt_checkbox.SetValue(True)
@@ -144,10 +144,10 @@ class MainFrame(wx.Frame):
   def getGenerateFiles(self):
     """Return a tuple of the checkboxes values"""
     return (self._to_transcript_checkbox.IsChecked(),
-           self._to_srt_checkbox.IsChecked(),
-           self._srt_combo.GetCurrentSelection(),
-           self._to_ass_checkbox.IsChecked(),
-           self._to_zip_checkbox.IsChecked())
+            self._to_srt_checkbox.IsChecked(),
+            self._srt_combo.GetCurrentSelection(),
+            self._to_ass_checkbox.IsChecked(),
+            self._to_zip_checkbox.IsChecked())
 
   def OnSRTComboChange(self, event):
     """docstring for OnSRTCombo"""
@@ -191,14 +191,14 @@ class DropFile(wx.FileDropTarget):
           self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
         elif srt_choice == 1:
           srt.toSRT(keep_tag=False, output_dir=sub_dir)
-          self._generated_files.add(u"%s/%s.NOTAG.srt"
-                                   % (sub_dir, srt.SubName))
+          self._generated_files.add(u"%s/%s.NOTAG.srt" %
+                                    (sub_dir, srt.SubName))
         else:
           srt.toSRT(keep_tag=True, output_dir=sub_dir)
           srt.toSRT(keep_tag=False, output_dir=sub_dir)
           self._generated_files.add(u"%s/%s.TAG.srt" % (sub_dir, srt.SubName))
-          self._generated_files.add(u"%s/%s.NOTAG.srt"
-                                   % (sub_dir, srt.SubName))
+          self._generated_files.add(u"%s/%s.NOTAG.srt" %
+                                    (sub_dir, srt.SubName))
 
       if do_transcript:
         srt.toTranscript()

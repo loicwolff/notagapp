@@ -22,12 +22,12 @@ class Preferences(wx.Frame):
 
   def __init__(self):
     super(Preferences, self).__init__(None,
-                                     -1,
-                                     u"Preferences",
-                                     wx.DefaultPosition,
-                                     wx.Size(550, 500))#,
-                                     #wx.CLOSE_BOX | wx.CAPTION |
-                                     #wx.STAY_ON_TOP | wx.SYSTEM_MENU)
+                                      -1,
+                                      u"Preferences",
+                                      wx.DefaultPosition,
+                                      wx.Size(550, 500))#,
+                                      #wx.CLOSE_BOX | wx.CAPTION |
+                                      #wx.STAY_ON_TOP | wx.SYSTEM_MENU)
 
     self.initControls()
     self.Center()

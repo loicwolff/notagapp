@@ -1,17 +1,15 @@
 #/usr/bin/env python
-# -*- coding: utf-8 -*-
+# encoding: utf-8
 
 import sys
 
 import wx
 from MainFrame import MainFrame
-from util.subtitle import SubtitleFile
-
+from subtitle import SubtitleFile
 
 class NoTagApp(wx.App):
-
   def OnInit(self):
-    main = MainFrame()
+    main = MainFrame(u'NoTag')
     return True
 
   def BringWindowToFront(self):
@@ -34,8 +32,7 @@ class NoTagApp(wx.App):
     #srt.removeTag()
 
   def MacOpenFile(self, filename):
-    """Called for files droped on dock icon,
-    or opened via finders context menu"""
+    """Called for files droped on dock icon, or opened via finders context menu"""
     sub = SubtitleFile()
     print filename
     print "%s dropped on app" % (filename)

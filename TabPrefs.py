@@ -17,10 +17,9 @@ class GeneralPref(wx.Panel):
 
   def __init__(self, parent):
     super(GeneralPref, self).__init__(parent)
+    self._initControls()
 
-    self.initControls()
-
-  def initControls(self):
+  def _initControls(self):
     """docstring for initControls"""
     general_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -49,7 +48,7 @@ class GeneralPref(wx.Panel):
     self._to_zip_checkbox.SetValue(True)
 
     general_boxsizer.AddSpacer(20)
-    general_boxsizer.Add(self._to_transcript_checkbox)
+    general_boxsizer.Add(wx.TextCtrl(self, wx.ID_ANY, 'tezt'))
     general_boxsizer.AddSpacer(20)
     general_boxsizer.Add(self._to_srt_checkbox)
     general_boxsizer.Add(self._srt_combo)

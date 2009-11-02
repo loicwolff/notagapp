@@ -4,7 +4,6 @@
 subtitle.py
 
 Created by Loïc Wolff on 2009-04-28.
-Copyright (c) 2009 loicwolff.eu. All rights reserved.
 """
 
 from __future__ import with_statement
@@ -111,7 +110,8 @@ def parse_srt_timing(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
   of the timing matched from a SRT line
   """
-  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
+  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> \
+  (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
 
 
 def parse_ass_timing(timing):
@@ -119,12 +119,8 @@ def parse_ass_timing(timing):
   of the timing matched from an ASS line
   """
   return re.match(r"Dialogue: 0,(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
-                  r"(\d{1,2}):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,\w*", timing).groups()
-
-
-def parse_weird_timing(timing):
-  """return a tuple of the start time, the length of the subtitle"""
-  return re.match(r"^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: .*:.*:.*:.*$", timing).groups()
+                  r"(\d{1,2}):(\d{2}):(\d{2}).(\d{2})," +
+                  "Default,,0000,0000,0000,,\\w*", timing).groups()
 
 
 def srt_to_ass_color(srt_color):
@@ -144,9 +140,13 @@ Timer: 100.0
 WrapStyle: 0
 
 [v4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, \
-ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
+Format: Name, Fontname, Fontsize, \
+PrimaryColour, SecondaryColour, OutlineColour, BackColour, \
+Bold, Italic, Underline, StrikeOut, \
+ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, \
+MarginL, MarginR, MarginV, Encoding
+Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,\
+0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -571,8 +571,7 @@ class Timing(object):
           self._hour,
           self._min,
           self._sec,
-          str(self._millis)[0:2]
-    )
+          str(self._millis)[0:2])
 
   def toSRT(self):
     return "%.2d:%.2d:%.2d,%.3d" % (

@@ -10,6 +10,7 @@ import wx
 #from DropBox import DropBox
 from AppMode import QuickMode, SmartMode
 
+
 class MainFrame(wx.Frame):
   """This is the main frame of the application.
   It should be designed to be as simple as possible.
@@ -45,6 +46,7 @@ class MainFrame(wx.Frame):
 
     notebook.AddPage(quick_mode, u'Quick')
     notebook.AddPage(smart_mode, u'Smart')
+    notebook.SetSelection(1)
 
     main_sizer = wx.BoxSizer(wx.VERTICAL)
     main_sizer.Add(notebook, 1, wx.EXPAND, 10)
@@ -76,8 +78,11 @@ class MainFrame(wx.Frame):
 
     event.Skip()
 
+
 def main():
+
   class App(wx.App):
+
     def OnInit(self):
       frame = MainFrame()
       return True

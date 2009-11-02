@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-TabPrefs.py
-
-Created by Loïc Wolff on 2009-07-02.
-Copyright (c) 2009 loicwolff.eu. All rights reserved.
-"""
 
 import sys
 import os

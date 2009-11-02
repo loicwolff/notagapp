@@ -7,7 +7,9 @@ import wx
 from MainFrame import MainFrame
 from subtitle import SubtitleFile
 
+
 class NoTagApp(wx.App):
+
   def OnInit(self):
     main = MainFrame(u'NoTag')
     return True
@@ -32,7 +34,8 @@ class NoTagApp(wx.App):
     #srt.removeTag()
 
   def MacOpenFile(self, filename):
-    """Called for files droped on dock icon, or opened via finders context menu"""
+    """Called for files droped on dock icon,
+    or opened via finders context menu"""
     sub = SubtitleFile()
     print filename
     print "%s dropped on app" % (filename)

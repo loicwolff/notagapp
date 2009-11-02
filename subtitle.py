@@ -3,7 +3,7 @@
 """
 subtitle.py
 
-Created by Loïc Wolff on 2009-04-28.
+Copyright bean & dex
 """
 
 from __future__ import with_statement

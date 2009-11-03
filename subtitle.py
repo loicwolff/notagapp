@@ -110,8 +110,7 @@ def parse_srt_timing(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
   of the timing matched from a SRT line
   """
-  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> \
-  (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
+  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
 
 
 def parse_ass_timing(timing):

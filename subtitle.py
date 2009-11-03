@@ -110,7 +110,8 @@ def parse_srt_timing(timing):
   """return a tuple of the start and end (hour, minute, sec and millis)
   of the timing matched from a SRT line
   """
-  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
+  return re.match(r"(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> " +
+                  r"(\d{2}):(\d{2}):(\d{2}),(\d{3})", timing).groups()
 
 
 def parse_ass_timing(timing):
@@ -126,7 +127,7 @@ def srt_to_ass_color(srt_color):
   return ""
 
 
-def build_ass_header(font="Arial", fontsize="20"):
+def build_ass_header(font="Arial", fontsize="20", bold=False, italic=False, underlined=False):
   """return a custom .ass header"""
   return u"""[Script Info]
 Title: <untitled>
@@ -145,11 +146,11 @@ Bold, Italic, Underline, StrikeOut, \
 ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, \
 MarginL, MarginR, MarginV, Encoding
 Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,\
-0,0,0,0,100,100,0,0,1,2,0,2,15,15,15,0
+%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,0
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-""" % (font, fontsize)
+""" % (font, fontsize, bold, italic, underlined)
 
 
 class SubtitleFile(object):
@@ -635,4 +636,4 @@ def test_lib():
   assert exotic == u"oeOeAeae", exotic
 
 if __name__ == "__main__":
-  test_lib()
+  pass

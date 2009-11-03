@@ -5,6 +5,7 @@ DEFAULT="NoTagApp.py"
 
 case $1 in
   "build")
+    #TODO: build for mac/win/linux
     $PYTHON setup_mac.py py2app -s --dist-dir='../dist' --bdist-base='../build/';;
   "run")
     case $2 in
@@ -18,6 +19,7 @@ case $1 in
         $PYTHON $DEFAULT;;
     esac;;
   "clean")
+    #TODO: build for mac/win/linux
     rm -r ../build/;
     rm -r ../dist/;;
   *)

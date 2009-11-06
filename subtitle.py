@@ -86,7 +86,7 @@ def to_srt_pattern(entry, keep_tag=True):
   for key, value in to_srt_tagged_pattern.items() if keep_tag \
                     else to_srt_pattern.items():
     entry = entry.replace(key, value)
-  return entry
+  return remove_exotic_char(entry)
 
 
 def to_ass_pattern(entry):
@@ -103,7 +103,7 @@ def to_ass_pattern(entry):
 
   for key, value in to_ass_pattern.items():
     entry = entry.replace(key, value)
-  return entry
+  return unicode(entry)
 
 
 def parse_srt_timing(timing):
@@ -146,7 +146,7 @@ Bold, Italic, Underline, StrikeOut, \
 ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, \
 MarginL, MarginR, MarginV, Encoding
 Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,\
-%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,0
+%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,utf-8
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -187,7 +187,6 @@ class SubtitleFile(object):
             sub_entry.Fade = re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", line).groups()
 
           #cleaning up the processed line
-          line = remove_exotic_char(line)
           line = to_nta_pattern(line)
           line = remove_tag(line)
 
@@ -200,7 +199,8 @@ class SubtitleFile(object):
   def _parseASS(self):
     """"""
     ass_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," +
-                                  r"(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$")
+                                  r"(\d):(\d{2}):(\d{2}).(\d{2})," +
+                                  "Default,,0000,0000,0000,,(.*)$")
     with codecs.open(self._file, u"r", self._detectEncoding()) as sub:
       index = 0
       for line in sub:
@@ -221,7 +221,6 @@ class SubtitleFile(object):
 
           # cleaning up
           text = to_nta_pattern(text)
-          #text = remove_exotic_char(text)
           text = remove_tag(text)
 
           sub_entry.StartTime = Timing(start_hour, start_min, start_sec, start_millis)
@@ -236,48 +235,15 @@ class SubtitleFile(object):
     """return the encoding of the file"""
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
-
+    
     print enc['encoding']
-    # windows-1255 is wrongfully detected when it's actually ISO-8859-1
-    # same goes for ISO-8859-2
-    if enc['encoding'] == 'windows-1255' or enc['encoding'] == 'ISO-8859-2':
-      return 'ISO-8859-1'
+    
+    # windows-1255 and ISO-8859-2 are wrongfully detected for windows-1252
+    if enc['encoding'] == 'windows-1255' or\
+       enc['encoding'] == 'ISO-8859-2':
+      return 'windows-1252'
     else:
       return enc['encoding']
-
-  def _parseWeird(self):
-    """"""
-    with open(self._file, "r", ) as sub:
-      sub_entry = None
-      index = 0
-
-      for line in sub:
-        line = line.strip("\r\n").strip("\n")
-
-        # match timing line
-        if re.match(r"^TIMEIN: (.*):(.*):(.*):(.*)\tDURATION: (.*):(.*)\tTIMEOUT: (.*):(.*):(.*):(.*)$", line):
-          index += 1
-          sub_entry = Subtitle()
-          sub_entry.Index = index
-          sub_entry.StartTime, sub_entry.EndTime = Timing.parseWeird(line)
-        # match text line
-        elif line != "":
-          if is_first_line:
-            if sub_entry is not None:
-              sub_entry.FirstLine = remove_exotic_char(line)
-              is_first_line = False
-          else:
-            if sub_entry is not None:
-              sub_entry.SecondLine = remove_exotic_char(line)
-              is_first_line = True
-              self._subs.append(sub_entry)
-              sub_entry = None
-        # match empty line
-        else:
-          if sub_entry is not None:
-            is_first_line = True
-            self._subs.append(sub_entry)
-            sub_entry = None
 
   def toASS(self, output_file=None, output_dir=None):
     """Write the ASS file.
@@ -297,7 +263,7 @@ class SubtitleFile(object):
     if output_file is None:
       output_file = self._sub_name
 
-    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "ISO-8859-1") as ass_file:
+    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "utf-8") as ass_file:
       header = build_ass_header()
       ass_file.write(header)
 
@@ -307,7 +273,7 @@ class SubtitleFile(object):
                         sub.EndTime.toASS(),
                         u"" if sub.Position is None else u"{\pos(%s,%s)}" % (sub.Position),
                         u"" if sub.Fade is None else u"{\fad(%s,%s)}" % (sub.Fade),
-                        to_ass_pattern(r"\N".join(sub.Lines))))
+                        to_ass_pattern("\\N".join(sub.Lines))))
 
   def toSRT(self, keep_tag=True, output_file=None, output_dir=None):
     """Write the SRT file.
@@ -334,7 +300,7 @@ class SubtitleFile(object):
                         output_file,
                         "TAG" if keep_tag else "NOTAG"),
                         "w",
-                        'ISO-8859-1') as output_file:
+                        'windows-1252') as output_file: #ISO-8859-1
 
       for sub in self._subs:
         output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
@@ -433,8 +399,6 @@ class SubtitleFile(object):
       self._parseSRT()
     elif self._type == u".ass":
       self._parseASS()
-    elif self._type == u".txt":
-      self._parseWeird()
 
   # properties
   File = property(_getFile, _setFile)
@@ -540,25 +504,6 @@ class Timing(object):
     return (Timing(timings[0], timings[1], timings[2], timings[3]),
             Timing(timings[4], timings[5], timings[6], timings[7]))
 
-  @staticmethod
-  def parseWeird(timing):
-    timings = parse_weird_timing(timing)
-
-    start_time = end_time = Timing(timings[0], timings[1], timings[2], timings[3])
-    millis, sec = timings[4:6]
-    end_time.Millis += int(millis)
-    if end_time.Millis >= 100:
-      end_time.Sec += 1
-
-    end_time.Sec += int(sec)
-    if end_time.Sec >= 60:
-      end_time.Min += 1
-
-    if end_time.Min >= 60:
-      end_time.Hour += 1
-
-    return start_time, end_time
-
   def __init__(self, hour=0, min=0, sec=0, millis=0):
     self._millis = int(millis)
     self._sec = int(sec)
@@ -627,7 +572,7 @@ class Timing(object):
 def test_lib():
   ass_sub = to_nta_pattern(u"{\i1}italic{\i0}")
   srt_sub = to_nta_pattern(u"<i>italic</i>")
-  tag = remove_tag(u"{\font}<i>{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>", True)
+  tag = remove_tag(u'{\font}<i>{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>', True)
   exotic = remove_exotic_char(u"œŒÆæ")
 
   assert ass_sub == u"[i]italic[/i]", ass_sub
@@ -636,4 +581,10 @@ def test_lib():
   assert exotic == u"oeOeAeae", exotic
 
 if __name__ == "__main__":
-  pass
+  sub_file = SubtitleFile('/Users/dex/Coding/Projects/NoTagApp/misc/subs/bored.to.death.105.srt')
+  
+  for sub in sub_file.Subs:
+    print unicode(sub)
+    print ''
+  
+  sub_file.toASS(output_dir='/Users/dex/Desktop', output_file='bored.to.death.105')

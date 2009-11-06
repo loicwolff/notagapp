@@ -61,38 +61,18 @@ class QuickDropbox(wx.FileDropTarget):
           zip_file.write(str(gen), str(os.path.basename(gen)))
       zip_file.close()
 
-  #def OnEnter(self, x, y, d):
-  #  """docstring for OnDragOver"""
-  #  print("%s / %s" % (x, y))
-  #  return d
-
 
 class SmartDropbox(wx.FileDropTarget):
   """class managing the file dropped to be processed"""
 
-  def __init__(self, on_files_dropped):
+  def __init__(self, drop_statictext):
     super(SmartDropbox, self).__init__()
-    self.on_drop = on_files_dropped
-    self._sub_dropped = None
+    self._drop_statictext = drop_statictext
 
   def OnDropFiles(self, x, y, files):
     if len(files) == 1:
-      self.SubDropped = files[0]
+      print(files[0])
+      self._drop_statictext.SetLabel(files[0])
+      self._drop_statictext.Wrap(20)
     else:
       print('smart mode')
-      
-    self.on_drop()
-
-  def SubDropped():
-    doc = "The subtitle file dropped on the box"
-
-    def fget(self):
-      return self._sub_dropped
-
-    def fset(self, value):
-      self._sub_dropped = value
-
-    def fdel(self):
-      del self._sub_dropped
-    return locals()
-  SubDropped = property(**SubDropped())

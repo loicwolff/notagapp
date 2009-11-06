@@ -4,12 +4,14 @@
 import sys
 
 import wx
+
 from MainFrame import MainFrame
 from subtitle import SubtitleFile
 
 
 class NoTagApp(wx.App):
-
+  """Main class to launch NoTag"""
+  
   def OnInit(self):
     main = MainFrame(u'NoTag')
     return True
@@ -27,11 +29,7 @@ class NoTagApp(wx.App):
       event.Skip()
 
   def OpenFileMessage(self, filename):
-    pass #TODO: fixme
-    #srt = SubtitleFile(filename)
-    #srt.toASS()
-    #srt.toTranscript()
-    #srt.removeTag()
+    pass
 
   def MacOpenFile(self, filename):
     """Called for files droped on dock icon,

@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-subtitle.py
-
-Copyright bean & dex
-"""
+"""subtitle management lib"""
 
 from __future__ import with_statement
 import re
@@ -15,7 +11,7 @@ import util.chardet as chardet # character detection lib
 
 import k # constants
 
-__author__ = u"Loïc Wolff <loicwolff (at) gmail.com>"
+__author__ = u"dex <loicwolff (at) gmail.com>, bean"
 
 
 def remove_exotic_char(entry):
@@ -83,10 +79,12 @@ def to_srt_pattern(entry, keep_tag=True):
                      k.NTA_UNDER_OPEN: "",
                      k.NTA_UNDER_CLOSE: ""}
 
-  for key, value in to_srt_tagged_pattern.items() if keep_tag \
+  for key, value in to_srt_tagged_pattern.items() if keep_tag\
                     else to_srt_pattern.items():
     entry = entry.replace(key, value)
-  return remove_exotic_char(entry)
+
+  return entry if keep_tag\
+    else remove_exotic_char(entry)
 
 
 def to_ass_pattern(entry):
@@ -127,7 +125,7 @@ def srt_to_ass_color(srt_color):
   return ""
 
 
-def build_ass_header(font="Arial", fontsize="20", bold=False, italic=False, underlined=False):
+def build_ass_header(font="Arial", fontsize=20, bold=False, italic=False, underlined=False):
   """return a custom .ass header"""
   return u"""[Script Info]
 Title: <untitled>
@@ -146,7 +144,7 @@ Bold, Italic, Underline, StrikeOut, \
 ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, \
 MarginL, MarginR, MarginV, Encoding
 Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,\
-%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,utf-8
+%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,0
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -181,7 +179,10 @@ class SubtitleFile(object):
           sub_entry.StartTime, sub_entry.EndTime = Timing.parseSRT(line)
         elif line != "": # text
           if re.search(r"\{\\pos\(\d{1,4},\d{1,4}\)\}", line):
-            sub_entry.Position = re.search(r"\{\\pos\((\d{1,4}),(\d{1,4})\)\}", line).groups()
+            sub_entry.Position = re.search(r"{\\pos\((\d{1,4}),(\d{1,4})\)}", line).groups()
+
+          if re.search(r"{\\(a[1-4])}", line):
+            sub_entry.ScreenPosition = re.search(r'{\\a([1-4])}', line).group(1)
 
           if re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", line):
             sub_entry.Fade = re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", line).groups()
@@ -197,10 +198,9 @@ class SubtitleFile(object):
             sub_entry = None
 
   def _parseASS(self):
-    """"""
-    ass_line_pattern = re.compile(r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2})," +
-                                  r"(\d):(\d{2}):(\d{2}).(\d{2})," +
-                                  "Default,,0000,0000,0000,,(.*)$")
+    ass_pattern = r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2}),(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$"
+    ass_line_pattern = re.compile(ass_pattern)
+
     with codecs.open(self._file, u"r", self._detectEncoding()) as sub:
       index = 0
       for line in sub:
@@ -215,6 +215,9 @@ class SubtitleFile(object):
 
           if re.search(r"{\\pos\(\d{1,4},\d{1,4}\)}", text):
             sub_entry.Position = re.search(r"{\\pos\((\d{1,4}),(\d{1,4})\)}", text).groups()
+
+          if re.search(r"{\\(a[1-4])}", line):
+            sub_entry.ScreenPosition = re.search(r'{\\a([1-4])}', line).group(1)
 
           if re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", text):
             sub_entry.Fade = re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", text).groups()
@@ -235,13 +238,13 @@ class SubtitleFile(object):
     """return the encoding of the file"""
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
-    
+
     print enc['encoding']
-    
+
     # windows-1255 and ISO-8859-2 are wrongfully detected for windows-1252
     if enc['encoding'] == 'windows-1255' or\
        enc['encoding'] == 'ISO-8859-2':
-      return 'windows-1252'
+      return 'ISO-8859-1'
     else:
       return enc['encoding']
 
@@ -263,17 +266,12 @@ class SubtitleFile(object):
     if output_file is None:
       output_file = self._sub_name
 
-    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "utf-8") as ass_file:
+    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "ISO-8859-1") as ass_file:
       header = build_ass_header()
       ass_file.write(header)
 
       for sub in self._subs:
-        ass_file.write(u"Dialogue: 0,%s,%s,Default,,0000,0000,0000,,%s%s%s\n" %
-                       (sub.StartTime.toASS(),
-                        sub.EndTime.toASS(),
-                        u"" if sub.Position is None else u"{\pos(%s,%s)}" % (sub.Position),
-                        u"" if sub.Fade is None else u"{\fad(%s,%s)}" % (sub.Fade),
-                        to_ass_pattern("\\N".join(sub.Lines))))
+        ass_file.write(sub.toASS() + "\r\n")
 
   def toSRT(self, keep_tag=True, output_file=None, output_dir=None):
     """Write the SRT file.
@@ -295,21 +293,11 @@ class SubtitleFile(object):
     if output_file is None:
       output_file = self._sub_name
 
-    with codecs.open(u"%s/%s.%s.srt" % (
-                        output_dir,
-                        output_file,
-                        "TAG" if keep_tag else "NOTAG"),
-                        "w",
-                        'windows-1252') as output_file: #ISO-8859-1
+    out = u"%s/%s.%s.srt" % (output_dir,output_file, "TAG" if keep_tag else "NOTAG")
 
+    with codecs.open(out, "w", 'ISO-8859-1') as output_file:
       for sub in self._subs:
-        output_file.write(u"%d\n%s --> %s\n%s%s%s\n\n" % (
-          sub.Index,
-          sub.StartTime.toSRT(),
-          sub.EndTime.toSRT(),
-          "" if sub.Position is None or not keep_tag else u"{\pos(%s,%s)}" % (sub.Position),
-          "" if sub.Fade is None or not keep_tag else u"{\fad(%s,%s)}" % (sub.Fade),
-          to_srt_pattern("\n".join(sub.Lines), keep_tag)))
+        output_file.write(sub.toSRT(keep_tag) + "\r\n\r\n")
 
   def toTranscript(self, output_file=None, output_dir=None):
     """write the transcript of the subtitle
@@ -369,21 +357,6 @@ class SubtitleFile(object):
 
     return {'num_subs': len(self._subs), 'num_line': num_line, 'too_long_lines': too_long_lines}
 
-  # getters
-  def _getFile(self):
-    return self._file
-
-  def _getSubs(self):
-    return self._subs
-
-  def _getSubName(self):
-    return self._sub_name
-
-  def _getSubType(self):
-    return self._type
-
-  def _getSubDir(self):
-    return self._sub_dir
 
   # setters
   def _setFile(self, filename):
@@ -401,11 +374,11 @@ class SubtitleFile(object):
       self._parseASS()
 
   # properties
-  File = property(_getFile, _setFile)
-  SubName = property(_getSubName)
-  SubExt = property(_getSubType)
-  SubDir = property(_getSubDir)
-  Subs = property(_getSubs)
+  File = property(lambda: self._file, _setFile)
+  SubName = property(lambda: self._sub_name)
+  SubExt = property(lambda: self._type)
+  SubDir = property(lambda: self._sub_dir)
+  Subs = property(lambda: self._subs)
 
 
 class Subtitle(object):
@@ -418,6 +391,7 @@ class Subtitle(object):
     self._end_time = Timing()
     self._lines = []
     self._pos = None
+    self._screen_pos = None
     self._fade = None
 
   def __del__(self):
@@ -436,61 +410,122 @@ class Subtitle(object):
                 "" if self._fade is None else u"\nfade: %s, %s" % (self._fade),
                 u"\n".join(self._lines))
 
+  def __unicode__(self):
+    return u"from %s to %s%s%s\nlines:\n%s" % (
+                self._start_time,
+                self._end_time,
+                "" if self._pos is None else u"\npos: %s, %s" % (self._pos),
+                "" if self._fade is None else u"\nfade: %s, %s" % (self._fade),
+                u"\n".join(self._lines))
+
+  def toSRT(self, keep_tag=True):
+    """return the .SRT version of the sub"""
+    ret = u"%s\n" % self._index
+    ret += u"%s --> %s\n" % (self._start_time, self._end_time)
+    if self._screen_pos:
+      ret += u"{\\a%s}" % self._screen_pos
+    if self._pos:
+      ret += u"{\\pos(%s,%s)}" % self._pos
+    if self._fade:
+      ret += u"{\\fade(%s,%s)}" % self._fade
+    ret += to_srt_pattern("\n".join(self._lines), keep_tag)
+    return ret
+
+  def toASS(self):
+    """return the .ASS version of the sub"""
+    ret = u"Dialogue: 0,"
+    ret += self._start_time.toASS()
+    ret += u","
+    ret += self._end_time.toASS()
+    ret += u",Default,,0000,0000,0000,,"
+    if self._screen_pos:
+      ret += u"{\\a%s}" % self._screen_pos
+    if self._pos:
+      ret += u"{\\pos(%s,%s)}" % self._pos
+    if self._fade:
+      ret += u"{\\fade(%s,%s)}" % self._fade
+    ret += to_ass_pattern(u"\\N".join(self._lines))
+    return ret
+
   def addLine(self, line):
      self._lines.append(line)
 
-  # getters
-  def _getIndex(self):
-    return self._index
+  def Index():
+      doc = "The Index property."
+      def fget(self):
+          return self._index
+      def fset(self, value):
+          self._index = value
+      def fdel(self):
+          del self._index
+      return locals()
+  Index = property(**Index())
 
-  def _getStartTime(self):
-    return self._start_time
+  def StartTime():
+      doc = "The StartTime property."
+      def fget(self):
+          return self._start_time
+      def fset(self, value):
+          self._start_time = value
+      def fdel(self):
+          del self._start_time
+      return locals()
+  StartTime = property(**StartTime())
 
-  def _getEndTime(self):
-    return self._end_time
+  def EndTime():
+      doc = "The EndTime property."
+      def fget(self):
+          return self._end_time
+      def fset(self, value):
+          self._end_time = value
+      def fdel(self):
+          del self._end_time
+      return locals()
+  EndTime = property(**EndTime())
 
-  def _getPosition(self):
-    return self._pos
+  def Position():
+      doc = "The Position property."
+      def fget(self):
+          return self._pos
+      def fset(self, value):
+          self._pos = value
+      def fdel(self):
+          del self._pos
+      return locals()
+  Position = property(**Position())
 
-  def _getFade(self):
-    return self._fade
+  def ScreenPosition():
+      doc = "The ScreenPosition property."
+      def fget(self):
+          return self._screen_pos
+      def fset(self, value):
+          self._screen_pos = value
+      def fdel(self):
+          del self._screen_pos
+      return locals()
+  ScreenPosition = property(**ScreenPosition())
 
-  def _getLines(self):
-    return self._lines
+  def Fade():
+      doc = "The Fade property."
+      def fget(self):
+          return self._fade
+      def fset(self, value):
+          self._fade = value
+      def fdel(self):
+          del self._fade
+      return locals()
+  Fade = property(**Fade())
 
-  # setters
-  def _setIndex(self, index):
-    self._index = index
-
-  def _setStartTime(self, timing):
-    self._start_time = timing
-
-  def _setEndTime(self, timing):
-    self._end_time = timing
-
-  def _setTimingLine(self, line):
-    self._start_time, self._end_time = Timing.parse(line)
-
-  def _setPosition(self, pos):
-    self._pos = pos
-
-  def _setFade(self, fade):
-    self._fade = fade
-
-  # properties
-  Index = property(_getIndex, _setIndex)
-  StartTime = property(_getStartTime, _setStartTime)
-  EndTime = property(_getEndTime, _setEndTime)
-  Lines = property(_getLines)
-  Position = property(_getPosition, _setPosition)
-  Fade = property(_getFade, _setFade)
-
+  Lines = property(lambda: self._lines)
 
 class Timing(object):
-  _millis = 0
-  _sec = 0
-  _min = 0
-  _hour = 0
+  """"""
+
+  def __init__(self, hour=0, minute=0, sec=0, millis=0):
+    self._millis = str('%03d' % int(millis))
+    self._sec = str('%02d' % int(sec))
+    self._min = str('%02d' % int(minute))
+    self._hour = str('%02d' % int(hour))
 
   @staticmethod
   def parseSRT(timing):
@@ -504,29 +539,24 @@ class Timing(object):
     return (Timing(timings[0], timings[1], timings[2], timings[3]),
             Timing(timings[4], timings[5], timings[6], timings[7]))
 
-  def __init__(self, hour=0, min=0, sec=0, millis=0):
-    self._millis = int(millis)
-    self._sec = int(sec)
-    self._min = int(min)
-    self._hour = int(hour)
-    self._type = type
-
   def toASS(self):
-    return "%d:%.2d:%.2d.%s" % (
-          self._hour,
+    """build the ass timing line"""
+    return "%s:%s:%s.%s" % (
+          self._hour[-1],
           self._min,
           self._sec,
-          str(self._millis)[0:2])
+          self._millis[0:2])
 
   def toSRT(self):
-    return "%.2d:%.2d:%.2d,%.3d" % (
+    """build the srt timing line"""
+    return "%s:%s:%s,%s" % (
           self._hour,
           self._min,
           self._sec,
-          self._millis)
+          self._millis[0:3])
 
   def __str__(self):
-    return "%d:%d:%d,%d" % (self._hour, self._min, self._sec, self._millis)
+    return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
 
   def values(self):
     return self._hour, self._min, self._sec, self._millis
@@ -580,11 +610,27 @@ def test_lib():
   assert tag == u"", tag
   assert exotic == u"oeOeAeae", exotic
 
-if __name__ == "__main__":
-  sub_file = SubtitleFile('/Users/dex/Coding/Projects/NoTagApp/misc/subs/bored.to.death.105.srt')
-  
-  for sub in sub_file.Subs:
-    print unicode(sub)
-    print ''
-  
+
+def test_sub():
+  sub_file = SubtitleFile('/Users/dex/Coding/Projects/NoTagApp/misc/subs/Bored.To.Death.105.NoTV.VF.TAG.srt')
+
   sub_file.toASS(output_dir='/Users/dex/Desktop', output_file='bored.to.death.105')
+  sub_file.toSRT(output_dir='/Users/dex/Desktop', output_file='bored.to.death.105')
+
+def test_pos():
+  sub = r"{\a1}le sub icipwet"
+  print(sub)
+  if re.search(r"{\\a[1-4]}", sub):
+    res = re.search(r"{\\(a[1-4])}", sub).group(1)
+    res2 = re.search(r"{\\(a[1-4])}", sub).groups()
+    print(type(res))
+    print(type(res2))
+
+def test_timing():
+  t = Timing(hour=001, minute=222, sec=3, millis=1111)
+  print t.toASS()
+  print t.toSRT()
+
+
+if __name__ == "__main__":
+  test_sub()

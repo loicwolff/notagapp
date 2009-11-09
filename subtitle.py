@@ -101,7 +101,7 @@ def to_ass_pattern(entry):
 
   for key, value in to_ass_pattern.items():
     entry = entry.replace(key, value)
-  return unicode(entry)
+  return entry
 
 
 def parse_srt_timing(timing):
@@ -153,14 +153,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 class SubtitleFile(object):
   """"""
+
   _subs = []
   _file = "" # full name
   _sub_name = "" # file name
   _sub_type = "" # .ext
   _sub_dir = "" # file directory
 
+  _pos_pattern = r"\{\\pos\((\d{1,4}),(\d{1,4})\)\}"
+  _pos_screen_pattern = r"{\\a(1|2|3|5|11)}"
+  _fade_pattern = r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}"
+
   def __init__(self, filename=None):
-    if filename is not None:
+    if filename:
       self._setFile(filename)
 
   def _parseSRT(self):
@@ -178,14 +183,14 @@ class SubtitleFile(object):
           sub_entry.Index = index
           sub_entry.StartTime, sub_entry.EndTime = Timing.parseSRT(line)
         elif line != "": # text
-          if re.search(r"\{\\pos\(\d{1,4},\d{1,4}\)\}", line):
-            sub_entry.Position = re.search(r"{\\pos\((\d{1,4}),(\d{1,4})\)}", line).groups()
+          if re.search(self._pos_pattern, line):
+            sub_entry.Position = re.search(self._pos_pattern, line).groups()
 
-          if re.search(r"{\\(a[1-4])}", line):
-            sub_entry.ScreenPosition = re.search(r'{\\a([1-4])}', line).group(1)
+          if re.search(self._pos_screen_pattern, line):
+            sub_entry.ScreenPosition = re.search(self._pos_screen_pattern, line).group(1)
 
-          if re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", line):
-            sub_entry.Fade = re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", line).groups()
+          if re.search(self._fade_pattern, line):
+            sub_entry.Fade = re.search(self._fade_pattern, line).groups()
 
           #cleaning up the processed line
           line = to_nta_pattern(line)
@@ -213,14 +218,14 @@ class SubtitleFile(object):
           m = re.search(ass_line_pattern, line)
           start_hour, start_min, start_sec, start_millis, end_hour, end_min, end_sec, end_millis, text = m.groups()
 
-          if re.search(r"{\\pos\(\d{1,4},\d{1,4}\)}", text):
-            sub_entry.Position = re.search(r"{\\pos\((\d{1,4}),(\d{1,4})\)}", text).groups()
+          if re.search(self._pos_pattern, text):
+            sub_entry.Position = re.search(self._pos_pattern, text).groups()
 
-          if re.search(r"{\\(a[1-4])}", line):
-            sub_entry.ScreenPosition = re.search(r'{\\a([1-4])}', line).group(1)
+          if re.search(self._pos_screen_pattern, line):
+            sub_entry.ScreenPosition = re.search(self._pos_screen_pattern, line).group(1)
 
-          if re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", text):
-            sub_entry.Fade = re.search(r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}", text).groups()
+          if re.search(self._fade_pattern, text):
+            sub_entry.Fade = re.search(self._fade_pattern, text).groups()
 
           # cleaning up
           text = to_nta_pattern(text)
@@ -239,6 +244,7 @@ class SubtitleFile(object):
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
 
+    print enc['encoding']
     # windows-1255 and ISO-8859-2 are wrongfully detected for windows-1252
     if enc['encoding'] == 'windows-1255' or\
        enc['encoding'] == 'ISO-8859-2':
@@ -269,7 +275,7 @@ class SubtitleFile(object):
       ass_file.write(header)
 
       for sub in self._subs:
-        ass_file.write(sub.toASS() + "\r\n")
+        ass_file.write(sub.toASS() + u"\r\n")
 
   def toSRT(self, keep_tag=True, output_file=None, output_dir=None):
     """Write the SRT file.
@@ -295,7 +301,7 @@ class SubtitleFile(object):
 
     with codecs.open(out, "w", 'ISO-8859-1') as output_file:
       for sub in self._subs:
-        output_file.write(sub.toSRT(keep_tag) + "\r\n\r\n")
+        output_file.write(sub.toSRT(keep_tag) + u"\r\n\r\n")
 
   def toTranscript(self, output_file=None, output_dir=None):
     """write the transcript of the subtitle
@@ -610,19 +616,17 @@ def test_lib():
 
 
 def test_sub():
-  sub_file = SubtitleFile('/Users/dex/Coding/Projects/NoTagApp/misc/subs/Bored.To.Death.105.NoTV.VF.TAG.srt')
+  sub_file = SubtitleFile('/Users/dex/Public/VMware/Bored.To.Death.106.NoTV.srt')
 
-  sub_file.toASS(output_dir='/Users/dex/Desktop', output_file='bored.to.death.105')
-  sub_file.toSRT(output_dir='/Users/dex/Desktop', output_file='bored.to.death.105')
+  sub_file.toASS(output_file='bored.to.death.106')
+  sub_file.toSRT(output_file='bored.to.death.106')
 
 def test_pos():
-  sub = r"{\a1}le sub icipwet"
+  sub = u"{\\a12}le sub ici"
   print(sub)
-  if re.search(r"{\\a[1-4]}", sub):
-    res = re.search(r"{\\(a[1-4])}", sub).group(1)
-    res2 = re.search(r"{\\(a[1-4])}", sub).groups()
-    print(type(res))
-    print(type(res2))
+  if re.search(r"{\\a(1|2|3|5|11)}", sub):
+    res = re.search(r"{\\a(1|2|3|5|11)}", sub).group(1)
+    print res
 
 def test_timing():
   t = Timing(hour=001, minute=222, sec=3, millis=1111)

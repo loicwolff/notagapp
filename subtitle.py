@@ -26,8 +26,10 @@ def remove_tag(entry, alltag=False):
   """remove SRT and ASS tags
   if alltag, NoTagApp specials tag are removed too
   """
-  tag_pattern = r"{.*?}|</?font.*?>|</?.*?>%s" % (r"|\[/?.?\]"
-                  if alltag else "")
+  tag_pattern = r"{.*?}|</?font.*?>|</?.*?>"
+
+  if alltag:
+    tag_pattern += r"|\[/?.?\]"
 
   return re.sub(tag_pattern, "", entry)
 
@@ -83,8 +85,7 @@ def to_srt_pattern(entry, keep_tag=True):
                     else to_srt_pattern.items():
     entry = entry.replace(key, value)
 
-  return entry if keep_tag\
-    else remove_exotic_char(entry)
+  return entry if keep_tag else remove_exotic_char(entry)
 
 
 def to_ass_pattern(entry):
@@ -426,12 +427,13 @@ class Subtitle(object):
     """return the .SRT version of the sub"""
     ret = u"%s\n" % self._index
     ret += u"%s --> %s\n" % (self._start_time, self._end_time)
-    if self._screen_pos:
-      ret += u"{\\a%s}" % self._screen_pos
-    if self._pos:
-      ret += u"{\\pos(%s,%s)}" % self._pos
-    if self._fade:
-      ret += u"{\\fade(%s,%s)}" % self._fade
+    if keep_tag:
+      if self._screen_pos:
+        ret += u"{\\a%s}" % self._screen_pos
+      if self._pos:
+        ret += u"{\\pos(%s,%s)}" % self._pos
+      if self._fade:
+        ret += u"{\\fade(%s,%s)}" % self._fade
     ret += to_srt_pattern("\n".join(self._lines), keep_tag)
     return ret
 
@@ -606,7 +608,7 @@ class Timing(object):
 def test_lib():
   ass_sub = to_nta_pattern(u"{\i1}italic{\i0}")
   srt_sub = to_nta_pattern(u"<i>italic</i>")
-  tag = remove_tag(u'{\font}<i>{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>', True)
+  tag = remove_tag(u'{\\font}<i>{\\a1}{\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>', True)
   exotic = remove_exotic_char(u"œŒÆæ")
 
   assert ass_sub == u"[i]italic[/i]", ass_sub
@@ -619,7 +621,7 @@ def test_sub():
   sub_file = SubtitleFile('/Users/dex/Public/VMware/Bored.To.Death.106.NoTV.srt')
 
   sub_file.toASS(output_file='bored.to.death.106')
-  sub_file.toSRT(output_file='bored.to.death.106')
+  sub_file.toSRT(output_file='bored.to.death.106', keep_tag=False)
 
 def test_pos():
   sub = u"{\\a12}le sub ici"

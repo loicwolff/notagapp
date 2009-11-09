@@ -239,8 +239,6 @@ class SubtitleFile(object):
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
 
-    print enc['encoding']
-
     # windows-1255 and ISO-8859-2 are wrongfully detected for windows-1252
     if enc['encoding'] == 'windows-1255' or\
        enc['encoding'] == 'ISO-8859-2':
@@ -374,11 +372,11 @@ class SubtitleFile(object):
       self._parseASS()
 
   # properties
-  File = property(lambda: self._file, _setFile)
-  SubName = property(lambda: self._sub_name)
-  SubExt = property(lambda: self._type)
-  SubDir = property(lambda: self._sub_dir)
-  Subs = property(lambda: self._subs)
+  File = property(_file, _setFile)
+  SubName = property(lambda self: self._sub_name)
+  SubExt = property(lambda self: self._sub_type)
+  SubDir = property(lambda self: self._sub_dir)
+  Subs = property(lambda self: self._subs)
 
 
 class Subtitle(object):
@@ -516,7 +514,7 @@ class Subtitle(object):
       return locals()
   Fade = property(**Fade())
 
-  Lines = property(lambda: self._lines)
+  Lines = property(lambda self: self._lines)
 
 class Timing(object):
   """"""

@@ -564,6 +564,12 @@ class Timing(object):
   def __str__(self):
     return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
 
+  def __add__(a, b):
+    return Timing(int(a._hour) + int(b._hour), int(a._min) + int(b._min), int(a._sec) + int(b._sec), int(a._millis) + int(b._millis))
+
+  def __sub__(a, b):
+    return Timing(int(a._hour) - int(b._hour), int(a._min) - int(b._min), int(a._sec) - int(b._sec), int(a._millis) - int(b._millis))
+
   def values(self):
     return self._hour, self._min, self._sec, self._millis
 
@@ -634,7 +640,13 @@ def test_timing():
   t = Timing(hour=001, minute=222, sec=3, millis=1111)
   print t.toASS()
   print t.toSRT()
+  t1 = Timing(hour=001, minute=10, sec=10, millis=100)
+  t2 = Timing(hour=001, minute=5, sec=5, millis=50)
+  print "t1 ->", t1
+  print "t2 ->", t1
+  print "t1 + t2 ->", t1 + t2
+  print "t1 - t2 ->", (t1 - t2)
 
 
 if __name__ == "__main__":
-  test_sub()
+  test_timing()

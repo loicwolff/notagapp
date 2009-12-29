@@ -565,6 +565,7 @@ class Timing(object):
     return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
 
   def __add__(a, b):
+    """add two timing together, taking care of incrementing the next property"""
     hour = a._hour + b._hour
     minute = a._min + b._min 
     sec = a._sec + b._sec 
@@ -582,10 +583,23 @@ class Timing(object):
     return Timing(hour, minute, sec, millis)
 
   def __sub__(a, b):
+    """substract two timing together, flooring to zero when necessary"""
     hour = a._hour - b._hour
     minute = a._min - b._min 
     sec = a._sec - b._sec 
     millis = a._millis - b._millis 
+
+    if millis < 0:
+      millis = 1000 - abs(millis)
+      sec -= 1
+    if sec < 0:
+      sec =  60 - abs(sec)
+      minute -= 1
+    if minute < 0:
+      minute = 60 - abs(minute)
+      hour -= 1
+    if hour < 0:
+      hour = minute = sec = millis = 0
     return Timing(hour, minute, sec, millis)
 
   def values(self):
@@ -662,7 +676,7 @@ def test_timing():
   print "toSRT ->", t.toSRT()
   t1 = Timing(hour=001, minute=10, sec=10, millis=100)
   #t2 = Timing(hour=001, minute=5, sec=5, millis=50)
-  t2 = Timing(hour=001, minute=55, sec=55, millis=950)
+  t2 = Timing(hour=001, minute=5, sec=55, millis=950)
   print "t1 ->", t1
   print "t2 ->", t2
   print "t1 + t2 ->", (t1 + t2).toSRT()

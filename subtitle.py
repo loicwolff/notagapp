@@ -528,10 +528,10 @@ class Timing(object):
   """"""
 
   def __init__(self, hour=0, minute=0, sec=0, millis=0):
-    self._millis = str('%03d' % int(millis))
-    self._sec = str('%02d' % int(sec))
-    self._min = str('%02d' % int(minute))
-    self._hour = str('%02d' % int(hour))
+    self._millis = millis
+    self._sec = sec
+    self._min = minute
+    self._hour = hour
 
   @staticmethod
   def parseSRT(timing):
@@ -547,28 +547,46 @@ class Timing(object):
 
   def toASS(self):
     """build the ass timing line"""
-    return "%s:%s:%s.%s" % (
-          self._hour[-1],
-          self._min,
-          self._sec,
-          self._millis[0:2])
-
-  def toSRT(self):
-    """build the srt timing line"""
-    return "%s:%s:%s,%s" % (
+    return "%d:%2d:%d.%02d" % (
           self._hour,
           self._min,
           self._sec,
-          self._millis[0:3])
+          self._millis / 10)
+
+  def toSRT(self):
+    """build the srt timing line"""
+    return "%02d:%02d:%02d,%03d" % (
+          self._hour,
+          self._min,
+          self._sec,
+          self._millis)
 
   def __str__(self):
     return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
 
   def __add__(a, b):
-    return Timing(int(a._hour) + int(b._hour), int(a._min) + int(b._min), int(a._sec) + int(b._sec), int(a._millis) + int(b._millis))
+    hour = a._hour + b._hour
+    minute = a._min + b._min 
+    sec = a._sec + b._sec 
+    millis = a._millis + b._millis 
+
+    if millis > 999:
+      sec += 1
+      millis = millis % 1000
+    if sec > 59:
+      minute += 1
+      sec = sec % 60
+    if minute > 59:
+      hour += 1
+      minute = minute % 60
+    return Timing(hour, minute, sec, millis)
 
   def __sub__(a, b):
-    return Timing(int(a._hour) - int(b._hour), int(a._min) - int(b._min), int(a._sec) - int(b._sec), int(a._millis) - int(b._millis))
+    hour = a._hour - b._hour
+    minute = a._min - b._min 
+    sec = a._sec - b._sec 
+    millis = a._millis - b._millis 
+    return Timing(hour, minute, sec, millis)
 
   def values(self):
     return self._hour, self._min, self._sec, self._millis
@@ -637,15 +655,18 @@ def test_pos():
     print res
 
 def test_timing():
-  t = Timing(hour=001, minute=222, sec=3, millis=1111)
-  print t.toASS()
-  print t.toSRT()
+  t = Timing(hour=123, minute=123, sec=3, millis=1234)
+  print "t ->", t
+  print "t.values() ->", t.values()
+  print "toASS ->", t.toASS()
+  print "toSRT ->", t.toSRT()
   t1 = Timing(hour=001, minute=10, sec=10, millis=100)
-  t2 = Timing(hour=001, minute=5, sec=5, millis=50)
+  #t2 = Timing(hour=001, minute=5, sec=5, millis=50)
+  t2 = Timing(hour=001, minute=55, sec=55, millis=950)
   print "t1 ->", t1
-  print "t2 ->", t1
-  print "t1 + t2 ->", t1 + t2
-  print "t1 - t2 ->", (t1 - t2)
+  print "t2 ->", t2
+  print "t1 + t2 ->", (t1 + t2).toSRT()
+  print "t1 - t2 ->", (t1 - t2).toSRT()
 
 
 if __name__ == "__main__":

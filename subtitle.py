@@ -11,7 +11,7 @@ import util.chardet as chardet # character detection lib
 
 import k # constants
 
-__author__ = u"dex <loicwolff (at) gmail.com>, bean"
+__author__ = u"dex <loicwolff (at) gmail.com>, bean <bean (at) subtitles.toh.info>"
 
 
 def remove_exotic_char(entry):

@@ -602,6 +602,24 @@ class Timing(object):
       hour = minute = sec = millis = 0
     return Timing(hour, minute, sec, millis)
 
+  def __lt__(a, b):
+    """return True if a < b, False, otherwise"""
+    if a._hour < b._hour:
+      return True
+    if a._hour > b._hour:
+      return False
+    if a._min < b._min:
+      return True
+    if a._min > b._min:
+      return False
+    if a._sec < b._sec:
+      return True
+    if a._sec > b._sec:
+      return False
+    if a._millis < b._millis:
+      return True
+    return False
+
   def values(self):
     return self._hour, self._min, self._sec, self._millis
 
@@ -681,6 +699,7 @@ def test_timing():
   print "t2 ->", t2
   print "t1 + t2 ->", (t1 + t2).toSRT()
   print "t1 - t2 ->", (t1 - t2).toSRT()
+  print "t1 < t2 ->", (t1 < t2)
 
 
 if __name__ == "__main__":

@@ -647,22 +647,10 @@ def test_sub():
     print sub
   #sub_file.toASS(output_dir='/users/dex/desktop/')
 
-def test_pos():
-  sub = u"{\\a12}le sub ici"
-  print(sub)
-  if re.search(r"{\\a(1|2|3|5|11)}", sub):
-    res = re.search(r"{\\a(1|2|3|5|11)}", sub).group(1)
-    print res
-
 def test_timing():
   t = Timing(hour=001, minute=222, sec=3, millis=1111)
   print t.toASS()
   print t.toSRT()
 
-def test_district9():
-  with codecs.open('/Users/dex/Desktop/District.9.2009.480p.BRRip.XviD.AC3-ViSiON.srt', 'r', 'utf-8') as district_sub:
-    for line in district_sub:
-      print line.strip('\r\n').strip('\n')
-
 if __name__ == "__main__":
-  test_district9()
+  pass

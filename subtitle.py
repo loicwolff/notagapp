@@ -17,6 +17,7 @@ __author__ = u"dex <loicwolff (at) gmail.com>, bean <bean (at) subtitles.toh.inf
 NEWLINE = u"\r\n"
 ENCODING = "ISO-8859-1"
 
+
 def remove_exotic_char(entry):
   """remove any exotic character from the text to make it more compatible"""
   no_tag_pattern = {u"œ": u"oe", u"Œ": u"Oe", u"Æ": u"Ae", u"æ": u"ae"}
@@ -39,6 +40,7 @@ def remove_tag(entry, alltag=False):
 
 def strip_line_ending(line):
   return line.strip('\r\n').strip('\n')
+
 
 def to_nta_pattern(entry):
   """replace ASS and SRT specific tags by NoTagApp tags"""
@@ -138,9 +140,6 @@ def build_ass_header(font="Arial", fontsize=20, bold=False, italic=False, underl
 Title: <untitled>
 Original Script: <unknown>
 ScriptType: v4.00+
-PlayResX: 384
-PlayResY: 288
-PlayDepth: 0
 Timer: 100.0
 WrapStyle: 0
 
@@ -312,7 +311,7 @@ class SubtitleFile(object):
     if output_file is None:
       output_file = self._sub_name
 
-    out = u"%s/%s.%s.srt" % (output_dir,output_file, "TAG" if keep_tag else "NOTAG")
+    out = u"%s/%s.%s.srt" % (output_dir, output_file, "TAG" if keep_tag else "NOTAG")
 
     with codecs.open(out, "w", 'ISO-8859-1') as output_file:
       for sub in self._subs:
@@ -376,8 +375,6 @@ class SubtitleFile(object):
 
     return {'num_subs': len(self._subs), 'num_line': num_line, 'too_long_lines': too_long_lines}
 
-
-  # setters
   def _setFile(self, filename):
     if not os.path.exists(filename):
       raise IOError(u'File does not exist')
@@ -401,7 +398,10 @@ class SubtitleFile(object):
 
 
 class Subtitle(object):
-  """
+  """Representes a subtitle
+  > The Index
+  > 2 Timing (Start / End)
+  > The Text
   """
 
   def __init__(self):
@@ -468,10 +468,11 @@ class Subtitle(object):
     return ret
 
   def addLine(self, line):
-     self._lines.append(line)
+    self._lines.append(line)
+
+  # properties
 
   def Index():
-    doc = "The Index property."
     def fget(self):
       return self._index
     def fset(self, value):
@@ -482,7 +483,6 @@ class Subtitle(object):
   Index = property(**Index())
 
   def StartTime():
-    doc = "The StartTime property."
     def fget(self):
       return self._start_time
     def fset(self, value):
@@ -493,7 +493,6 @@ class Subtitle(object):
   StartTime = property(**StartTime())
 
   def EndTime():
-    doc = "The EndTime property."
     def fget(self):
       return self._end_time
     def fset(self, value):
@@ -504,7 +503,6 @@ class Subtitle(object):
   EndTime = property(**EndTime())
 
   def Position():
-    doc = "The Position property."
     def fget(self):
       return self._pos
     def fset(self, value):
@@ -515,7 +513,6 @@ class Subtitle(object):
   Position = property(**Position())
 
   def ScreenPosition():
-    doc = "The ScreenPosition property."
     def fget(self):
       return self._screen_pos
     def fset(self, value):
@@ -538,21 +535,18 @@ class Subtitle(object):
 
   Lines = property(lambda self: self._lines)
 
+
 class Timing(object):
-  """"""
+  """Represent a subtitle start or end time.
+  Stores the Hour, Minute, Sec and Millis.
+  Can convert itself from SRT to SRT and vice versa.
+  """
 
   def __init__(self, hour=0, minute=0, sec=0, millis=0):
-<<<<<<< local
-    self._hour = str('%02d' % int(hour))
-    self._min = str('%02d' % int(minute))
-    self._sec = str('%02d' % int(sec))
-    self._millis = str('%03d' % int(millis))
-=======
     self._millis = millis
     self._sec = sec
     self._min = minute
     self._hour = hour
->>>>>>> other
 
   @staticmethod
   def parseSRT(timing):
@@ -585,16 +579,12 @@ class Timing(object):
   def __str__(self):
     return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
 
-<<<<<<< local
-  def __unicode__(self):
-    return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
-=======
   def __add__(a, b):
     """add two timing together, taking care of incrementing the next property"""
     hour = a._hour + b._hour
-    minute = a._min + b._min 
-    sec = a._sec + b._sec 
-    millis = a._millis + b._millis 
+    minute = a._min + b._min
+    sec = a._sec + b._sec
+    millis = a._millis + b._millis
 
     if millis > 999:
       sec += 1
@@ -610,15 +600,15 @@ class Timing(object):
   def __sub__(a, b):
     """substract two timing together, flooring to zero when necessary"""
     hour = a._hour - b._hour
-    minute = a._min - b._min 
-    sec = a._sec - b._sec 
-    millis = a._millis - b._millis 
+    minute = a._min - b._min
+    sec = a._sec - b._sec
+    millis = a._millis - b._millis
 
     if millis < 0:
       millis = 1000 - abs(millis)
       sec -= 1
     if sec < 0:
-      sec =  60 - abs(sec)
+      sec = 60 - abs(sec)
       minute -= 1
     if minute < 0:
       minute = 60 - abs(minute)
@@ -648,40 +638,9 @@ class Timing(object):
   def values(self):
     return self._hour, self._min, self._sec, self._millis
 
-  # getters
-  def _getMillis(self):
-    return self._millis
-
-  def _getSec(self):
-    return self._sec
-
-  def _getMin(self):
-    return self._min
-
-  def _getHour(self):
-    return self._hour
-
-  def _getTime(self):
-    """Return the timing in a tuple form"""
-    return self._hour, self._min, self._sec, self._millis
-
-  # setters
-  def _setMillis(self, millis):
-    self._millis = millis
-
-  def _setSec(self, sec):
-    self._sec = sec
-
-  def _setMin(self, min):
-    self._min = min
-
-  def _setHour(self, hour):
-    self._hour = hour
->>>>>>> other
-
   # properties
+  
   def Hour():
-    doc = "The Hour property."
     def fget(self):
       return self._hour
     def fset(self, value):
@@ -692,7 +651,6 @@ class Timing(object):
   Hour = property(**Hour())
 
   def Minute():
-    doc = "The Minute property."
     def fget(self):
       return self._min
     def fset(self, value):
@@ -703,7 +661,6 @@ class Timing(object):
   Minute = property(**Minute())
 
   def Seconde():
-    doc = "The Seconde property."
     def fget(self):
       return self._sec
     def fset(self, value):
@@ -714,7 +671,6 @@ class Timing(object):
   Seconde = property(**Seconde())
 
   def Millis():
-    doc = "The Millis property."
     def fget(self):
       return self._millis
     def fset(self, value):
@@ -740,10 +696,9 @@ def test_lib():
 
 
 def test_sub():
-  sub_file = SubtitleFile('/Users/dex/Movies/Films/District.9.2009.480p.BRRip.XviD.AC3-ViSiON.srt')
-  for sub in sub_file.Subs:
-    print sub
-  #sub_file.toASS(output_dir='/users/dex/desktop/')
+  sub_file = SubtitleFile('./misc/subs/Bored.To.Death.105.NoTV.VF.NoTAG.srt')
+  sub_file.toASS(output_dir='~/desktop/')
+
 
 def test_timing():
   t = Timing(hour=123, minute=123, sec=3, millis=1234)
@@ -761,8 +716,6 @@ def test_timing():
   print "t1 < t2 ->", (t1 < t2)
 
 if __name__ == "__main__":
-<<<<<<< local
-  pass
-=======
   test_timing()
->>>>>>> other
+  # test_lib()
+  # test_sub()

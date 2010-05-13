@@ -8,19 +8,20 @@ import os
 import codecs
 
 import util.chardet as chardet # character detection lib
-
+import debug
+debug.is_enabled = False
 import k # constants
 
 __author__ = u"dex <loicwolff (at) gmail.com>, bean <bean (at) subtitles.toh.info>"
 
 # misc constants
 NEWLINE = u"\r\n"
-ENCODING = "ISO-8859-1"
+ENCODING = "windows-1252"
 
 
 def remove_exotic_char(entry):
   """remove any exotic character from the text to make it more compatible"""
-  no_tag_pattern = {u"œ": u"oe", u"Œ": u"Oe", u"Æ": u"Ae", u"æ": u"ae"}
+  no_tag_pattern = {u"œ": u"oe", u"": u"oe", u"Œ": u"Oe", u"Æ": u"Ae", u"æ": u"ae"}
   for key, value in no_tag_pattern.items():
     entry = entry.replace(key, value)
   return entry
@@ -77,7 +78,7 @@ def to_srt_pattern(entry, keep_tag=True):
                             k.NTA_BOLD_CLOSE: k.SRT_BOLD_CLOSE,
                             # underlined tags
                             k.NTA_UNDER_OPEN: k.SRT_UNDER_OPEN,
-                            k.NTA_UNDER_CLOSE: k.SRT_UNDER_CLOSE}
+                            k.NTA_UNDER_CLOSE: k.SRT_UNDER_CLOSE }
 
   to_srt_pattern = { # italics tags
                      k.NTA_ITA_OPEN: k.SRT_ITA_OPEN,
@@ -87,7 +88,7 @@ def to_srt_pattern(entry, keep_tag=True):
                      k.NTA_BOLD_CLOSE: "",
                      # underlined tags
                      k.NTA_UNDER_OPEN: "",
-                     k.NTA_UNDER_CLOSE: ""}
+                     k.NTA_UNDER_CLOSE: "" }
 
   for key, value in to_srt_tagged_pattern.items() if keep_tag\
                     else to_srt_pattern.items():
@@ -136,25 +137,7 @@ def srt_to_ass_color(srt_color):
 
 def build_ass_header(font="Arial", fontsize=20, bold=False, italic=False, underlined=False):
   """return a custom .ass header"""
-  return u"""[Script Info]
-Title: <untitled>
-Original Script: <unknown>
-ScriptType: v4.00+
-Timer: 100.0
-WrapStyle: 0
-
-[v4+ Styles]
-Format: Name, Fontname, Fontsize, \
-PrimaryColour, SecondaryColour, OutlineColour, BackColour, \
-Bold, Italic, Underline, StrikeOut, \
-ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, \
-MarginL, MarginR, MarginV, Encoding
-Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,\
-%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,0
-
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-""" % (font, fontsize, bold, italic, underlined)
+  return k.ASS_HEADER % (font, fontsize, bold, italic, underlined)
 
 
 class SubtitleFile(object):
@@ -176,25 +159,25 @@ class SubtitleFile(object):
 
   def _parseSRT(self):
     """"""
-    with codecs.open(self._file, "r", self._detectEncoding()) as sub:
+    with codecs.open(self._file, "r", 'windows-1252') as sub: #detect
       sub_entry = None
       index = 0
 
       for line in sub:
         line = strip_line_ending(line)
-        if re.match(r"^[0-9]+", line):
+        if re.match(r"^[0-9]+$", line):
           # index
-          print 'index: "%s"' % line
+          debug.out('index: "%s"' % line)
           sub_entry = Subtitle()
         elif re.match(r"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", line):
           # timing
-          print 'timing: "%s"' % line
+          debug.out('timing: "%s"' % line)
           index += 1
           sub_entry.Index = index
           sub_entry.StartTime, sub_entry.EndTime = Timing.parseSRT(line)
         elif line != "":
           # text
-          print 'text: "%s"' % line
+          debug.out('text: "%s"' % line)
           if re.search(self._pos_pattern, line):
             sub_entry.Position = re.search(self._pos_pattern, line).groups()
 
@@ -211,7 +194,7 @@ class SubtitleFile(object):
           sub_entry.addLine(line)
         else:
           # empty line
-          print 'empty line'
+          debug.out('empty line')
           if sub_entry is not None:
             self._subs.append(sub_entry)
             sub_entry = None
@@ -220,7 +203,7 @@ class SubtitleFile(object):
     ass_pattern = r"^Dialogue: 0,(\d):(\d{2}):(\d{2}).(\d{2}),(\d):(\d{2}):(\d{2}).(\d{2}),Default,,0000,0000,0000,,(.*)$"
     ass_line_pattern = re.compile(ass_pattern)
 
-    with codecs.open(self._file, u"r", self._detectEncoding()) as sub:
+    with codecs.open(self._file, u"r", 'windows-1252') as sub: #detect
       index = 0
       for line in sub:
         line = line.strip(r"\r\n").strip(r"\n")
@@ -258,11 +241,10 @@ class SubtitleFile(object):
     with open(self._file, 'r') as f:
       enc = chardet.detect("".join(f.readlines()))
 
-    print enc['encoding']
+    debug.out(enc['encoding'])
     # windows-1255 and ISO-8859-2 are wrongfully detected for windows-1252
-    if enc['encoding'] == 'windows-1255' or\
-       enc['encoding'] == 'ISO-8859-2':
-      return 'ISO-8859-1'
+    if enc['encoding'] == 'windows-1255' or enc['encoding'] == 'ISO-8859-2' or enc['encoding'] == 'ISO-8859-1':
+      return 'windows-1252'
     else:
       return enc['encoding']
 
@@ -284,7 +266,7 @@ class SubtitleFile(object):
     if output_file is None:
       output_file = self._sub_name
 
-    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "ISO-8859-1") as ass_file: #ISO-8859-1
+    with codecs.open(u"%s/%s.ass" % (output_dir, output_file), "w", "windows-1252") as ass_file: #ISO-8859-1
       header = build_ass_header()
       ass_file.write(header)
 
@@ -313,7 +295,7 @@ class SubtitleFile(object):
 
     out = u"%s/%s.%s.srt" % (output_dir, output_file, "TAG" if keep_tag else "NOTAG")
 
-    with codecs.open(out, "w", 'ISO-8859-1') as output_file:
+    with codecs.open(out, "w", 'windows-1252') as output_file:
       for sub in self._subs:
         output_file.write(sub.toSRT(keep_tag) + NEWLINE + NEWLINE)
 
@@ -335,7 +317,7 @@ class SubtitleFile(object):
       output_dir = self._sub_dir
 
     to_join = False
-    with codecs.open("%s/%s.TRANSCRIPT.txt" % (output_dir, output_file), "w", 'ISO-8859-1') as transcript_file:
+    with codecs.open("%s/%s.TRANSCRIPT.txt" % (output_dir, output_file), "w", 'windows-1252') as transcript_file:
       for sub in self._subs:
         if to_join:
           transcript = transcript + " " + remove_tag("\n".join(sub.Lines), True)
@@ -390,7 +372,7 @@ class SubtitleFile(object):
       self._parseASS()
 
   # properties
-  File = property(_file, _setFile)
+  File = property(lambda self: self._file, _setFile)
   SubName = property(lambda self: self._sub_name)
   SubExt = property(lambda self: self._sub_type)
   SubDir = property(lambda self: self._sub_dir)
@@ -543,10 +525,10 @@ class Timing(object):
   """
 
   def __init__(self, hour=0, minute=0, sec=0, millis=0):
-    self._millis = millis
-    self._sec = sec
-    self._min = minute
-    self._hour = hour
+    self._millis = int(millis)
+    self._sec = int(sec)
+    self._min = int(minute)
+    self._hour = int(hour)
 
   @staticmethod
   def parseSRT(timing):
@@ -562,11 +544,13 @@ class Timing(object):
 
   def toASS(self):
     """build the ass timing line"""
-    return "%d:%2d:%d.%02d" % (
+    millis = str("%.3d" % self._millis) if self._millis < 100 else str(self._millis)
+    
+    return "%1d:%02d:%02d.%s" % (
           self._hour,
           self._min,
           self._sec,
-          self._millis / 10)
+          millis[0:2])
 
   def toSRT(self):
     """build the srt timing line"""
@@ -577,7 +561,7 @@ class Timing(object):
           self._millis)
 
   def __str__(self):
-    return "%s:%s:%s,%s" % (self._hour, self._min, self._sec, self._millis)
+    return "%d:%d:%d,%d" % (self._hour, self._min, self._sec, self._millis)
 
   def __add__(a, b):
     """add two timing together, taking care of incrementing the next property"""
@@ -632,7 +616,7 @@ class Timing(object):
     if a._sec > b._sec:
       return False
     if a._millis < b._millis:
-      return True
+      return Tre
     return False
 
   def values(self):
@@ -660,7 +644,7 @@ class Timing(object):
     return locals()
   Minute = property(**Minute())
 
-  def Seconde():
+  def Second():
     def fget(self):
       return self._sec
     def fset(self, value):
@@ -668,13 +652,13 @@ class Timing(object):
     def fdel(self):
       del self._sec
     return locals()
-  Seconde = property(**Seconde())
+  Second = property(**Second())
 
   def Millis():
     def fget(self):
       return self._millis
     def fset(self, value):
-      self._millis = str('%02d' % int(value))
+      self._millis = str('%03d' % int(value))
     def fdel(self):
       del self._millis
     return locals()
@@ -701,19 +685,19 @@ def test_sub():
 
 
 def test_timing():
-  t = Timing(hour=123, minute=123, sec=3, millis=1234)
-  print "t ->", t
-  print "t.values() ->", t.values()
-  print "toASS ->", t.toASS()
-  print "toSRT ->", t.toSRT()
-  t1 = Timing(hour=001, minute=10, sec=10, millis=100)
+  t = Timing(hour=123, minute=12, sec=13, millis=14)
+  debug.out("t ->", t)
+  #debug.out("t.values() ->", t.values())
+  debug.out("toASS ->", t.toASS())
+  debug.out("toSRT ->", t.toSRT())
+  #t1 = Timing(hour=001, minute=10, sec=10, millis=100)
   #t2 = Timing(hour=001, minute=5, sec=5, millis=50)
-  t2 = Timing(hour=001, minute=5, sec=55, millis=950)
-  print "t1 ->", t1
-  print "t2 ->", t2
-  print "t1 + t2 ->", (t1 + t2).toSRT()
-  print "t1 - t2 ->", (t1 - t2).toSRT()
-  print "t1 < t2 ->", (t1 < t2)
+  #t2 = Timing(hour=001, minute=5, sec=55, millis=950)
+  #print "t1 ->", t1
+  #print "t2 ->", t2
+  #print "t1 + t2 ->", (t1 + t2).toSRT()
+  #print "t1 - t2 ->", (t1 - t2).toSRT()
+  #print "t1 < t2 ->", (t1 < t2)
 
 if __name__ == "__main__":
   test_timing()

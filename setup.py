@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-# import os
+import os
 
 
 def build_osx_app():

@@ -35,3 +35,18 @@ ASS_COLOR_OPEN = u"{\c&%s%s%s&}"
 ASS_COLOR_CLOSE = u"{\c}"
 SRT_COLOR_OPEN = u"<font color=\"#%s%s%s\">"
 SRT_COLOR_CLOSE = u"</font>"
+
+ASS_HEADER = u"""[Script Info]
+Title: <untitled>
+Original Script: <unknown>
+ScriptType: v4.00+
+Timer: 100.0
+WrapStyle: 0
+
+[v4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,%s,%s,&H00FFFFFF,&H00000000,&H00000000,&H00000000,%d,%d,%d,0,100,100,0,0,1,2,0,2,15,15,15,0
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""

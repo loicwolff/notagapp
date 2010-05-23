@@ -30,14 +30,13 @@ class Preferences(wx.Frame):
   def initControls(self):
     """docstring for initControls"""
     notebook = wx.Notebook(self, wx.ID_ANY)
-    notebook.AddPage(AssPref(notebook), u"ASS")
     notebook.AddPage(GeneralPref(notebook), u"General")
+    notebook.AddPage(AssPref(notebook), u"ASS")
 
 
 def main():
 
   class App(wx.App):
-
     def OnInit(self):
       pref = Preferences()
       return True

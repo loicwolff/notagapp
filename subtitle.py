@@ -422,7 +422,7 @@ class Subtitle(object):
   def toSRT(self, keep_tag=True):
     """return the .SRT version of the sub"""
     ret = u"%s\r\n" % self._index
-    ret += u"%s --> %s\r\n" % (self._start_time, self._end_time)
+    ret += u"%s --> %s\r\n" % (self._start_time.toSRT(), self._end_time.toSRT())
     if keep_tag:
       if self._screen_pos:
         ret += u"{\\a%s}" % self._screen_pos
@@ -679,27 +679,20 @@ def test_lib():
   assert exotic == u"oeOeAeae", exotic
 
 
-def test_sub():
-  sub_file = SubtitleFile('./misc/subs/Bored.To.Death.105.NoTV.VF.NoTAG.srt')
-  sub_file.toASS(output_dir='~/desktop/')
-
-
 def test_timing():
   t = Timing(hour=123, minute=12, sec=13, millis=14)
-  debug.out("t ->", t)
-  #debug.out("t.values() ->", t.values())
-  debug.out("toASS ->", t.toASS())
-  debug.out("toSRT ->", t.toSRT())
-  #t1 = Timing(hour=001, minute=10, sec=10, millis=100)
-  #t2 = Timing(hour=001, minute=5, sec=5, millis=50)
-  #t2 = Timing(hour=001, minute=5, sec=55, millis=950)
-  #print "t1 ->", t1
-  #print "t2 ->", t2
-  #print "t1 + t2 ->", (t1 + t2).toSRT()
-  #print "t1 - t2 ->", (t1 - t2).toSRT()
-  #print "t1 < t2 ->", (t1 < t2)
+  print "t.values() ->", t.values()
+  print "toASS ->", t.toASS()
+  print "toSRT ->", t.toSRT()
+  t1 = Timing(hour=001, minute=10, sec=10, millis=100)
+  t2 = Timing(hour=001, minute=5, sec=5, millis=50)
+  t2 = Timing(hour=001, minute=5, sec=55, millis=950)
+  print "t1 ->", t1
+  print "t2 ->", t2
+  print "t1 + t2 ->", (t1 + t2).toSRT()
+  print "t1 - t2 ->", (t1 - t2).toSRT()
+  print "t1 < t2 ->", (t1 < t2)
 
 if __name__ == "__main__":
   test_timing()
-  # test_lib()
-  # test_sub()
+  test_lib()

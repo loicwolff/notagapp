@@ -15,43 +15,45 @@ class GeneralPref(wx.Panel):
 
   def _initControls(self):
     """docstring for initControls"""
-    general_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
-
-    self._to_ass_checkbox = wx.CheckBox(self, wx.ID_ANY, u"To ASS")
-    self._to_srt_checkbox = wx.CheckBox(self, wx.ID_ANY, u"")
+    cb_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
+    
+    self._to_srt_checkbox = wx.CheckBox(self, wx.ID_ANY, u"Tag")
+    self._to_notag_srt_checkbox = wx.CheckBox(self, wx.ID_ANY, u"NoTag")
+    self._to_ass_checkbox = wx.CheckBox(self, wx.ID_ANY, u".ASS")
     self._to_transcript_checkbox = wx.CheckBox(self, wx.ID_ANY, u"Transcript")
-    self._to_zip_checkbox = wx.CheckBox(self, wx.ID_ANY, u"")
-
-    self._srt_combo = wx.Choice(self,
-                                wx.ID_ANY,
-                                wx.DefaultPosition,
-                                wx.Size(130, -1),
-                                [u"tag.srt", u"notag.srt", u"tag&notag.srt"])
-    self._srt_combo.SetSelection(2)
-
-    self._zip_combo = wx.Choice(self,
-                                wx.ID_ANY,
-                                wx.DefaultPosition,
-                                wx.Size(105, -1),
-                                [u"zip&keep", u"zip&delete"])
-    self._zip_combo.SetSelection(0)
+    self._to_zip_checkbox = wx.CheckBox(self, wx.ID_ANY, u"Zip it!")
 
     self._to_transcript_checkbox.SetValue(False)
     self._to_srt_checkbox.SetValue(True)
+    self._to_notag_srt_checkbox.SetValue(True)
     self._to_ass_checkbox.SetValue(True)
     self._to_zip_checkbox.SetValue(True)
 
-    general_boxsizer.AddSpacer(20)
-    general_boxsizer.Add(wx.TextCtrl(self, wx.ID_ANY, 'tezt'))
-    general_boxsizer.AddSpacer(20)
-    general_boxsizer.Add(self._to_srt_checkbox)
-    general_boxsizer.Add(self._srt_combo)
-    general_boxsizer.AddSpacer(20)
-    general_boxsizer.Add(self._to_ass_checkbox)
-    general_boxsizer.AddSpacer(20)
-    general_boxsizer.Add(self._to_zip_checkbox)
-    general_boxsizer.Add(self._zip_combo)
-           #, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
+    cb_boxsizer.AddSpacer(20)
+    cb_boxsizer.Add(self._to_transcript_checkbox)
+    cb_boxsizer.AddSpacer(20)
+    cb_boxsizer.Add(self._to_srt_checkbox)
+    cb_boxsizer.AddSpacer(20)
+    cb_boxsizer.Add(self._to_notag_srt_checkbox)
+    cb_boxsizer.AddSpacer(20)
+    cb_boxsizer.Add(self._to_ass_checkbox)
+    cb_boxsizer.AddSpacer(20)
+    cb_boxsizer.Add(self._to_zip_checkbox)
+    
+    destination_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    
+    destination_choices = ["Same folder as subtitle", "Desktop", "Ask everytime", "Other..."]
+    self._dropdown_destination = wx.Choice(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, destination_choices)
+
+    destination_sizer.Add(wx.StaticText(self, wx.ID_ANY, u"Create subtitles in: "))
+    destination_sizer.Add(self._dropdown_destination)
+
+    general_boxsizer = wx.BoxSizer(wx.VERTICAL)
+    general_boxsizer.Add(wx.StaticText(self, wx.ID_ANY, u"Choose default"))
+    general_boxsizer.AddSpacer(10)
+    general_boxsizer.Add(cb_boxsizer)
+    general_boxsizer.AddSpacer(30)
+    general_boxsizer.Add(destination_sizer)
 
     self.SetSizer(general_boxsizer)
 
@@ -119,7 +121,6 @@ class AssPref(wx.Panel):
 
 
 def main():
-
   pass
 
 if __name__ == '__main__':

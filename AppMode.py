@@ -102,7 +102,7 @@ class SmartMode(wx.Panel):
     sd_vf_drop_text.SetFont(DROPBOX_FONT)
 
     sd_vf_drop_srt = wx.StaticText(parent=self,
-                                    label=u'dadza',
+                                    label=u'',
                                     size=wx.Size(50, 50),
                                     style=DROPBOX_STYLE)
     sd_vf_drop_srt.SetFont(DROPBOX_FONT_SRT)
@@ -132,7 +132,7 @@ class SmartMode(wx.Panel):
     sd_vo_drop_text.SetFont(DROPBOX_FONT)
 
     sd_vo_drop_srt = wx.StaticText(parent=self,
-                                    label=u'dadza',
+                                    label=u'',
                                     size=wx.Size(50, 50),
                                     style=DROPBOX_STYLE)
     sd_vo_drop_srt.SetFont(DROPBOX_FONT_SRT)
@@ -150,57 +150,25 @@ class SmartMode(wx.Panel):
     # HD VO Dropbox #
     #################
     hd_vo_box = wx.StaticBox(self)
-    hd_vo_drop_text = wx.StaticText(parent=self,
-                                    label=u'SD VO',
-                                    size=wx.Size(50, 50),
-                                    style=DROPBOX_STYLE)
-    hd_vo_drop_text.SetFont(DROPBOX_FONT)
-
     hd_vo_drop_srt = wx.StaticText(parent=self,
-                                    label=u'dadza',
+                                    label=u'HD VO',
                                     size=wx.Size(50, 50),
-                                    style=DROPBOX_STYLE)
-    hd_vo_drop_srt.SetFont(DROPBOX_FONT_SRT)
+                                    style=wx.ALIGN_CENTER)
+    hd_vo_drop_srt.SetFont(DROPBOX_FONT)
 
     hd_vo_static_boxsizer = wx.StaticBoxSizer(hd_vo_box, wx.VERTICAL)
-    hd_vo_static_boxsizer.Add(hd_vo_drop_text, 1, DROPBOX_STYLE, 0)
     hd_vo_static_boxsizer.Add(hd_vo_drop_srt, 1, DROPBOX_STYLE, 0)
 
-    hd_vo_text_droptarget = SmartDropbox(hd_vo_drop_srt)
-    hd_vo_drop_text.SetDropTarget(hd_vo_text_droptarget)
     hd_vo_srt_droptarget = SmartDropbox(hd_vo_drop_srt)
     hd_vo_drop_srt.SetDropTarget(hd_vo_srt_droptarget)
 
     submitBtn = wx.Button(self, label=u"¡Vamos!")
-
-    # checkboxes
-    self._to_srt_tag_checkbox = wx.CheckBox(self, label=u"Tag")
-    self._to_srt_notag_checkbox = wx.CheckBox(self, label=u"NoTag")
-    self._to_ass_checkbox = wx.CheckBox(self, label=u".ASS")
-    self._to_transcript_checkbox = wx.CheckBox(self, label=u"Transcript")
-    self._to_zip_checkbox = wx.CheckBox(self, label=u"Zip it!")
-    
     submitBtn.Bind(wx.EVT_BUTTON, self.vamosClick)
 
-    self._to_transcript_checkbox.SetValue(False)
-    self._to_srt_tag_checkbox.SetValue(True)
-    self._to_srt_notag_checkbox.SetValue(True)
-    self._to_ass_checkbox.SetValue(True)
+    self._to_zip_checkbox = wx.CheckBox(self, label=u"Zip it!")
     self._to_zip_checkbox.SetValue(True)
 
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    cb_sizer.AddSpacer(20)
-    cb_sizer.Add(self._to_transcript_checkbox, 0,
-                  wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    cb_sizer.AddSpacer(20)
-    cb_sizer.Add(self._to_srt_tag_checkbox, 0,
-                  wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    cb_sizer.AddSpacer(20)
-    cb_sizer.Add(self._to_srt_notag_checkbox, 0,
-                  wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
-    cb_sizer.AddSpacer(20)
-    cb_sizer.Add(self._to_ass_checkbox, 0,
-                  wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_zip_checkbox, 0,
                   wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL, 20)
@@ -219,7 +187,7 @@ class SmartMode(wx.Panel):
     main_sizer.AddSpacer(20)
     main_sizer.Add(dropbox_sizer, 0, wx.EXPAND, 100)
     main_sizer.AddSpacer(20)
-    main_sizer.Add(cb_sizer)
+    main_sizer.Add(cb_sizer, 0, wx.ALIGN_RIGHT, 10)
     main_sizer.AddSpacer(20)
 
     self.SetSizer(main_sizer)

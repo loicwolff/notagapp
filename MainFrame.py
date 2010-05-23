@@ -7,7 +7,6 @@ import os
 # external lib
 import wx
 
-#from DropBox import DropBox
 from AppMode import QuickMode, SmartMode
 
 
@@ -37,9 +36,7 @@ class MainFrame(wx.Frame):
 
     # Controls Initialization and showing of the form
     notebook = wx.Notebook(self)
-    #TODO:
-    #notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnNoteBookChangeTab)
-    #notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnNoteBookChangeTab)
+    notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnNoteBookTabChanging)
 
     quick_mode = QuickMode(notebook)
     #smart_mode = SmartMode(notebook)
@@ -53,36 +50,22 @@ class MainFrame(wx.Frame):
 
     self.SetSizer(main_sizer)
 
-  def OnNoteBookChangeTab(self, event):
-    if event.GetSelection() == 0:
-      # tiny mode
-      self.SetSize(wx.Size(510, 140))
-    elif event.GetSelection() == 1:
-      # smart mode
-      self.SetSize(wx.Size(510, 400))
-
-    #TODO: manage screen size
-    #self.Center()
-    if False:
-      i = self.GetSize().GetHeight()
-      if event.GetSelection() == 0:
-        while i > 140:
-          i -= 10
-          self.SetSize(wx.Size(510, i))
-        self._mainpanel.Show()
-      elif event.GetSelection() == 1:
-        self._mainpanel.Hide()
-        while i < 400:
-          i += 10
-          self.SetSize(wx.Size(510, i))
+  def OnNoteBookTabChanging(self, event):
+    smartmode_size = 400
+    tinymode_size = 140
+    
+    if event.GetSelection() == 0: # go to tiny mode
+      for height in range(smartmode_size, tinymode_size, -15):
+        self.SetSize(wx.Size(510, height))
+    elif event.GetSelection() == 1: # go to smart mode
+      for height in range(tinymode_size, smartmode_size, 15):
+        self.SetSize(wx.Size(510, height))
 
     event.Skip()
 
 
 def main():
-
   class App(wx.App):
-
     def OnInit(self):
       frame = MainFrame()
       return True

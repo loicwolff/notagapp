@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-K.py
-
-Created by Loïc Wolff on 2009-04-25.
-Copyright (c) 2009 loicwolff.eu. All rights reserved.
-"""
 
 # tag constants
 NTA_ITA_OPEN = u"[i]"

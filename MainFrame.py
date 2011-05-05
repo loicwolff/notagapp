@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#/usr/bin/env python2.5
 # encoding: utf-8
 
 # python lib
@@ -6,6 +6,8 @@ import os
 
 # external lib
 import wx
+
+print(wx.__version__)
 
 from AppMode import QuickMode, SmartMode
 

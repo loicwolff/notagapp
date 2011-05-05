@@ -140,7 +140,7 @@ class SubtitleFile(object):
 
   _pos_pattern = r"\{\\pos\((\d{1,4}),(\d{1,4})\)\}"
   _pos_screen_pattern = r"{\\a(1|2|3|5|11)}"
-  _fade_pattern = r"{\\(?:fad|fade)\((\d{1,4}),(\d{1,4})\)}"
+  _fade_pattern = r"{\\fad\((\d{1,4}),(\d{1,4})\)}"
 
   def __init__(self, filename=None):
     if filename:
@@ -431,7 +431,7 @@ class Subtitle(object):
       if self._pos:
         ret += u"{\\pos(%s,%s)}" % self._pos
       if self._fade:
-        ret += u"{\\fade(%s,%s)}" % self._fade
+        ret += u"{\\fad(%s,%s)}" % self._fade
     ret += to_srt_pattern("\r\n".join(self._lines), keep_tag)
     return ret
 
@@ -447,7 +447,7 @@ class Subtitle(object):
     if self._pos:
       ret += u"{\\pos(%s,%s)}" % self._pos
     if self._fade:
-      ret += u"{\\fade(%s,%s)}" % self._fade
+      ret += u"{\\fad(%s,%s)}" % self._fade
     ret += to_ass_pattern(u"\\N".join(self._lines))
     return ret
 

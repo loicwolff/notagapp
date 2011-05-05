@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.5
 # encoding: utf-8
 
 import sys
@@ -12,7 +12,7 @@ class Preferences(wx.Frame):
   """Preferences pages"""
   _MAINFRAME_ID = wx.NewId()
 
-  _CONFIG_FILE = os.path.expanduser('~/.notagapp.conf')
+  _CONFIG_FILE = os.path.expanduser('~/.notag.conf')
 
   def __init__(self):
     super(Preferences, self).__init__(None,

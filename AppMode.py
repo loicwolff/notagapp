@@ -31,6 +31,7 @@ class QuickMode(wx.Panel):
     self._to_ass_checkbox = wx.CheckBox(self, label=u".ASS")
     self._to_transcript_checkbox = wx.CheckBox(self, label=u"Transcript")
     self._to_zip_checkbox = wx.CheckBox(self, label=u"Zip it!")
+    self._sanitize_checkbox = wx.CheckBox(self, label=u"Sanitize")
 
     cb_sizer = wx.BoxSizer(wx.HORIZONTAL)
     cb_sizer.Add(self._to_transcript_checkbox, 0, DROPBOX_ALIGN, 20)
@@ -42,12 +43,15 @@ class QuickMode(wx.Panel):
     cb_sizer.Add(self._to_ass_checkbox, 0, DROPBOX_ALIGN, 20)
     cb_sizer.AddSpacer(20)
     cb_sizer.Add(self._to_zip_checkbox, 0, DROPBOX_ALIGN, 20)
-
+    cb_sizer.AddSpacer(20)
+    cb_sizer.Add(self._sanitize_checkbox, 0, DROPBOX_ALIGN, 20)
+    
     self._to_transcript_checkbox.SetValue(False)
     self._to_srt_tag_checkbox.SetValue(True)
     self._to_srt_notag_checkbox.SetValue(True)
     self._to_ass_checkbox.SetValue(True)
     self._to_zip_checkbox.SetValue(True)
+    self._sanitize_checkbox.SetValue(False)
 
     drop_target = QuickDropbox(self.getFilesToBuild)
     drop_text.SetDropTarget(drop_target)
@@ -65,7 +69,8 @@ class QuickMode(wx.Panel):
             self._to_srt_tag_checkbox.IsChecked(),
             self._to_srt_notag_checkbox.IsChecked(),
             self._to_ass_checkbox.IsChecked(),
-            self._to_zip_checkbox.IsChecked())
+            self._to_zip_checkbox.IsChecked(),
+            self._sanitize_checkbox.IsChecked())
 
 
 class SmartMode(wx.Panel):

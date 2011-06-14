@@ -25,7 +25,7 @@ class QuickDropbox(wx.FileDropTarget):
     encoding = 'windows-1252' if os.sys.platform == 'win32' else 'utf-8'
     
     archive = ""
-    do_transcript, do_srt_tag, do_srt_notag, do_ass, do_zip = self.get_files()
+    do_transcript, do_srt_tag, do_srt_notag, do_ass, do_zip, sanitize = self.get_files()
     
     for sub in files:
       srt = SubtitleFile(sub)
@@ -56,7 +56,10 @@ class QuickDropbox(wx.FileDropTarget):
       if do_transcript:
         srt.toTranscript(output_dir=sub_dir)
         self._generated_files.add("%s/%s." % (sub_dir, srt.SubName))
-    
+      
+      if sanitize:
+        srt.sanitize(input_file=sub, output_file=srt.SubName, outdir=srt.SubDir)
+      
     if do_zip:
       zip_file = zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED)
       for gen in self._generated_files:

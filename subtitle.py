@@ -19,6 +19,12 @@ DEBUG_MODE = False
 
 
 def remove_exotic_char(entry):
+  ret = ""
+  for c in entry:
+    if ord(c) < 255:
+      ret += c
+
+def replace_exotic_char(entry):
   """remove any exotic character from the text to make it more compatible"""
   no_tag_pattern = {u"œ": u"oe", u"": u"oe", u"Œ": u"Oe", u"Æ": u"Ae", u"æ": u"ae"}
   for key, value in no_tag_pattern.items():
@@ -83,7 +89,7 @@ def to_srt_pattern(entry, notag=False):
   for key, value in to_srt_pattern.items():
     entry = entry.replace(key, value)
 
-  return entry if notag else remove_exotic_char(entry)
+  return entry if notag else replace_exotic_char(entry)
 
 
 def to_ass_pattern(entry):
@@ -179,8 +185,10 @@ class SubtitleFile(object):
           #cleaning up the processed line
           line = to_nta_pattern(line)
           line = remove_tag(line)
-
-          sub_entry.addLine(line)
+          if not sub_entry:
+            sub_entry = Subtitle()
+            sub_entry.addLine(line)
+            
         else:
           # empty line
           debug('empty line')
@@ -337,6 +345,19 @@ class SubtitleFile(object):
         else:
           to_join = False
         transcript_file.write(transcript + "\n")
+
+  def sanitize(self, input_file, output_file, outdir):
+    """remove any character not in the extended ASCII table
+    """
+    print("%s/%s.CLEAN.srt" % (outdir, output_file))
+    print(input_file)
+    
+    with codecs.open("%s/%s.CLEAN.srt" % (outdir, output_file), "w", 'utf-8') as sanitized:
+      with codecs.open(input_file, 'r', 'utf-8') as to_sanitize:
+        for line in to_sanitize:
+          for c in line:
+            if ord(c) <= 255:
+              sanitized.write(c)
 
   def stats(self):
     """return a tuple with:
@@ -621,7 +642,7 @@ class Timing(object):
     if a._sec > b._sec:
       return False
     if a._millis < b._millis:
-      return Tre
+      return True
     return False
 
   def values(self):
@@ -681,7 +702,7 @@ def test_lib():
   ass_sub = to_nta_pattern(u"{\i1}italic{\i0}")
   srt_sub = to_nta_pattern(u"<i>italic</i>")
   tag = remove_tag(u'{\\font}<i>{\\a1}{\\i0}</i>[i][/i][b][/b][u][/u]<u></u></b><b>', True)
-  exotic = remove_exotic_char(u"œŒÆæ")
+  exotic = replace_exotic_char(u"œŒÆæ")
 
   assert ass_sub == u"[i]italic[/i]", ass_sub
   assert srt_sub == u"[i]italic[/i]", srt_sub
